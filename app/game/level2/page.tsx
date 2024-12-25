@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { useRouter } from "next/router";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
 
@@ -207,27 +208,12 @@ export default function Level2() {
       </g>
     ),
     dragon: (
-      <g>
-        {/* Dragon Body - Main Square */}
-        <rect x="8" y="16" width="16" height="8" fill="#D2691E" />
-
-        {/* Dragon Head - Square */}
-        <rect x="24" y="16" width="8" height="8" fill="#FF4500" />
-
-        {/* Dragon Wings - Two Squares */}
-        <rect x="12" y="8" width="8" height="8" fill="#FF6347" />
-        <rect x="20" y="12" width="8" height="4" fill="#FF6347" />
-
-        {/* Dragon Belly - Square */}
-        <rect x="12" y="24" width="8" height="4" fill="#FFD700" />
-
-        {/* Dragon Tail - Square */}
-        <rect x="4" y="20" width="4" height="4" fill="#D2691E" />
-
-        {/* Dragon Eyes - Small Squares */}
-        <rect x="26" y="18" width="2" height="2" fill="#FFFFFF" />
-        <rect x="27" y="19" width="1" height="1" fill="#000000" />
-      </g>
+      <img
+        src={"/images/EuropeanDragon.png"}
+        width={TILE_SIZE}
+        height={TILE_SIZE}
+        alt="dragon"
+      />
     ),
   };
 
@@ -472,25 +458,32 @@ export default function Level2() {
                 height: TILE_SIZE,
               }}
             >
-              <svg width={TILE_SIZE} height={TILE_SIZE}>
-                {cell === 0
-                  ? tiles.path
-                  : cell === 1
-                  ? tiles.grass
-                  : cell === 2
-                  ? tiles.tree
-                  : cell === 3
-                  ? tiles.house
-                  : cell === 4
-                  ? tiles.water
-                  : cell === 5
-                  ? tiles.magician
-                  : cell === 6
-                  ? tiles.rock
-                  : cell === 7
-                  ? tiles.dragon
-                  : tiles.path}
-              </svg>
+              {cell === 7 ? (
+                <img
+                  src={"/images/EuropeanDragon.png"}
+                  width={TILE_SIZE}
+                  height={TILE_SIZE}
+                  alt="dragon"
+                />
+              ) : (
+                <svg width={TILE_SIZE} height={TILE_SIZE}>
+                  {cell === 0
+                    ? tiles.path
+                    : cell === 1
+                    ? tiles.grass
+                    : cell === 2
+                    ? tiles.tree
+                    : cell === 3
+                    ? tiles.house
+                    : cell === 4
+                    ? tiles.water
+                    : cell === 5
+                    ? tiles.magician
+                    : cell === 6
+                    ? tiles.rock
+                    : tiles.path}
+                </svg>
+              )}
             </div>
           ))
         )}
@@ -534,6 +527,7 @@ export default function Level2() {
                       setTimeout(() => {
                         setShowDialog(false);
                       }, 2000);
+                      window.location.href = "/game/print";
                     }}
                   >
                     תעזור לקוסם
@@ -546,6 +540,7 @@ export default function Level2() {
                       setTimeout(() => {
                         setShowDialog(false);
                       }, 2000);
+                      window.location.href = "/game/print";
                     }}
                   >
                     לברוח מהדרקון
@@ -557,6 +552,7 @@ export default function Level2() {
                       setScore(score + 2);
                       setTimeout(() => {
                         setShowDialog(false);
+                        window.location.href = "/game/print";
                       }, 2000);
                     }}
                   >
@@ -570,6 +566,7 @@ export default function Level2() {
                       setTimeout(() => {
                         setShowDialog(false);
                       }, 2000);
+                      window.location.href = "/game/print";
                     }}
                   >
                     אחכה ואראה מה יהיה

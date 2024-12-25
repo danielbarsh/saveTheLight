@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useApplicationContext } from "@/app/ApplicationContext";
