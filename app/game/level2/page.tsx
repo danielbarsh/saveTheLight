@@ -476,20 +476,20 @@ export default function Level2() {
                 {cell === 0
                   ? tiles.path
                   : cell === 1
-                  ? tiles.grass
-                  : cell === 2
-                  ? tiles.tree
-                  : cell === 3
-                  ? tiles.house
-                  : cell === 4
-                  ? tiles.water
-                  : cell === 5
-                  ? tiles.magician
-                  : cell === 6
-                  ? tiles.rock
-                  : cell === 7
-                  ? tiles.dragon
-                  : tiles.path}
+                    ? tiles.grass
+                    : cell === 2
+                      ? tiles.tree
+                      : cell === 3
+                        ? tiles.house
+                        : cell === 4
+                          ? tiles.water
+                          : cell === 5
+                            ? tiles.magician
+                            : cell === 6
+                              ? tiles.rock
+                              : cell === 7
+                                ? tiles.dragon
+                                : tiles.path}
               </svg>
             </div>
           ))
@@ -517,10 +517,10 @@ export default function Level2() {
                 {playerChoice === "help"
                   ? "תודה רבה על האומץ שלך"
                   : playerChoice === "flee"
-                  ? "לא רק בבקשה אל תעזוב אותי"
-                  : playerChoice === "negotiate"
-                  ? "הדרקון לא רוצה לשוחח"
-                  : "אני מקווה שתחליט מהר"}
+                    ? "לא! רק אל תעזוב אותי"
+                    : playerChoice === "negotiate"
+                      ? "הדרקון לא רוצה לשוחח"
+                      : "אני מקווה שתחליט מהר"}
               </p>
             ) : (
               <>

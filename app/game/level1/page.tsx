@@ -23,6 +23,7 @@ export default function Level1() {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [missionCompleted, setMissionCompleted] = useState<boolean>(false);
   const [canProceed, setCanProceed] = useState<boolean>(false);
+  const [showInstruction, setShowInstruction] = useState(true);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
     null
   );
@@ -246,6 +247,8 @@ export default function Level1() {
     };
   }, []);
 
+
+
   // Add this useEffect at the beginning of your component
   useEffect(() => {
     setScore(0);
@@ -446,16 +449,16 @@ export default function Level1() {
                 {cell === 0
                   ? tiles.path
                   : cell === 1
-                  ? tiles.grass
-                  : cell === 2
-                  ? tiles.tree
-                  : cell === 3
-                  ? tiles.house
-                  : cell === 4
-                  ? tiles.water
-                  : cell === 5
-                  ? tiles.magician
-                  : tiles.path}
+                    ? tiles.grass
+                    : cell === 2
+                      ? tiles.tree
+                      : cell === 3
+                        ? tiles.house
+                        : cell === 4
+                          ? tiles.water
+                          : cell === 5
+                            ? tiles.magician
+                            : tiles.path}
               </svg>
             </div>
           ))
@@ -479,7 +482,7 @@ export default function Level1() {
         {showDialog && (
           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4 m-2 rounded">
             <p className="text-right mb-4">
-              היי! איבדתי את הדרך, האם תוכל לעזור לי?
+              ?היי! איבדתי את הדרך, האם תוכל לעזור לי
             </p>
 
             {!selectedChoice ? (
@@ -545,12 +548,12 @@ export default function Level1() {
               <div className="text-right">
                 <p className="mb-2">
                   {selectedChoice === "ignore"
-                    ? "אני מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך!"
+                    ? "אני מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
                     : selectedChoice === "directions"
-                    ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
-                    : selectedChoice === "map"
-                    ? "המפה שציירת תעזור לי מאוד. תודה על היצירתיות!"
-                    : "אני מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך!"}
+                      ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
+                      : selectedChoice === "map"
+                        ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
+                        : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
                 </p>
               </div>
             )}
@@ -571,7 +574,7 @@ export default function Level1() {
       )}
 
       <div className="mt-4 text-white">
-        <p>Use arrow keys to move | Get close to the magician to talk</p>
+        <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
       <h1>score: {score}</h1>
       {/* <button onClick={() => setScore(score + 1)}>Increase score</button> */}

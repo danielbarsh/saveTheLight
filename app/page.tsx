@@ -61,7 +61,7 @@ export default function Home() {
     },
   };
 
-  const startGame = () => {};
+  const startGame = () => { };
 
   const showOptions = () => {
     alert(language === "he" ? "פתיחת אפשרויות..." : "Opening options...");
@@ -98,7 +98,7 @@ export default function Home() {
             style={styles.menuButton}
             onClick={() => setLanguage((prev) => (prev === "he" ? "en" : "he"))}
           >
-            {language === "he" ? "Change Language" : "שנה שפה"}
+            {language === "he" ? "שנה שפה" : "Change Language"}
           </button>
         </div>
       </div>
