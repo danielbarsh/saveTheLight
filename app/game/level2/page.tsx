@@ -417,7 +417,6 @@ export default function Level2() {
       }}
     >
       <h1>Level 2</h1>
-      <h2>{score}</h2>
       <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
         <button
           onClick={togglePlay}
@@ -588,8 +587,9 @@ export default function Level2() {
       </div>
 
       <div className="mt-4 text-white">
-        <p>Use arrow keys to move | Get close to the magician to talk</p>
+        <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
+      <h1>score: {score}</h1>
     </div>
   );
 }
