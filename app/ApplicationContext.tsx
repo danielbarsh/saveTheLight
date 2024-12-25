@@ -4,24 +4,24 @@ import React, {
   createContext,
   useContext,
   useState,
+  useEffect,
   ReactNode,
   Dispatch,
   SetStateAction,
 } from "react";
 
-// Define the shape of the context
 type ApplicationContextProps = {
   score: number;
   setScore: Dispatch<SetStateAction<number>>;
+  resetScore: () => void;
 };
 
-// Create context with default values
 const ApplicationContext = createContext<ApplicationContextProps>({
   score: 0,
   setScore: () => {},
+  resetScore: () => {},
 });
 
-// Create a provider component
 export const ApplicationContextProvider = ({
   children,
 }: {
@@ -29,18 +29,35 @@ export const ApplicationContextProvider = ({
 }) => {
   const [score, setScore] = useState<number>(0);
 
+  useEffect(() => {
+    // Initialize score from localStorage on the client
+    const savedScore = localStorage.getItem("score");
+    if (savedScore) {
+      setScore(parseInt(savedScore, 10));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save the score to localStorage whenever it changes
+    localStorage.setItem("score", score.toString());
+  }, [score]);
+
+  const resetScore = () => {
+    setScore(0);
+    localStorage.setItem("score", "0");
+  };
+
   return (
-    <ApplicationContext.Provider value={{ score, setScore }}>
+    <ApplicationContext.Provider value={{ score, setScore, resetScore }}>
       {children}
     </ApplicationContext.Provider>
   );
 };
 
-// Custom hook to use the context
 export const useApplicationContext = (): ApplicationContextProps => {
   const context = useContext(ApplicationContext);
   if (!context) {
-    throw new Error("useMyContext must be used within a MyContextProvider");
+    throw new Error("useApplicationContext must be used within an ApplicationContextProvider");
   }
   return context;
 };
