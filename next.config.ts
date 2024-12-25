@@ -6,4 +6,12 @@ const nextConfig: NextConfig = {
 
 };
 
+// next.config.js
+module.exports = {
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
+};
+
 export default nextConfig;
