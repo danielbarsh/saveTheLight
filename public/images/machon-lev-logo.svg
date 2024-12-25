@@ -1,0 +1,64 @@
+<!--
+   MindCheck Logo Example
+   1) Copy all this text into a file named "logo.svg"
+   2) Open "logo.svg" in your browser or a design tool
+   3) Export as PNG (e.g., 512 × 512 px)
+-->
+<svg 
+    version="1.1"
+    width="512" 
+    height="512" 
+    viewBox="0 0 512 512" 
+    xmlns="http://www.w3.org/2000/svg"
+>
+  <title>MindCheck - Example Logo</title>
+  
+  <!-- 
+    The teal circle represents a simple "head" shape. 
+    Adjust fill color (currently #63b6c0) to change teal to another color.
+  -->
+  <circle 
+    cx="256" 
+    cy="200" 
+    r="120" 
+    fill="#63b6c0"
+  />
+
+  <!-- 
+    This path is a stylized game controller in white (#fff). 
+    It includes small circles to simulate buttons. 
+  -->
+  <path 
+    fill="#fff"
+    d="
+       M226 180 h60 
+       a20,20 0 0 1 20 20 
+       v40 a20,20 0 0 1 -20 20 
+       h-60 a20,20 0 0 1 -20 -20 
+       v-40 a20,20 0 0 1 20 -20 
+       z
+
+       M245 200 a5,5 0 1 1 0,10 a5,5 0 1 1 0,-10 
+       M305 200 a5,5 0 1 1 0,10 a5,5 0 1 1 0,-10 
+       M280 225 a5,5 0 1 1 0,10 a5,5 0 1 1 0,-10 
+       M266 225 a5,5 0 1 1 0,10 a5,5 0 1 1 0,-10
+    "
+  />
+
+  <!-- 
+    Company name in a friendly color (#4a9098). 
+    Change the text to your actual company name (e.g., "MyMindGame"). 
+    Adjust font-size as needed.
+  -->
+  <text 
+    x="256" 
+    y="400" 
+    fill="#4a9098" 
+    font-size="48" 
+    text-anchor="middle" 
+    font-family="sans-serif"
+  >
+    MindCheck
+  </text>
+
+</svg>
