@@ -541,14 +541,14 @@ export default function Level1() {
                   }}
                   className="w-full text-right bg-purple-700 hover:bg-purple-600 p-2 rounded transition-colors"
                 >
-                  לגנוב למכשף את הדברים
+                  לגנוב למכשף את החפצים
                 </button>
               </div>
             ) : (
               <div className="text-right">
                 <p className="mb-2">
                   {selectedChoice === "ignore"
-                    ? "אני מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
+                    ? "אני !מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
                     : selectedChoice === "directions"
                       ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
                       : selectedChoice === "map"
