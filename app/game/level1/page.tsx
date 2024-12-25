@@ -571,7 +571,7 @@ export default function Level1() {
       <div className="mt-4 text-white">
         <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
-      <h1>score: {score}</h1>
+      <h1>ניקוד: {score}</h1>
       {/* <button onClick={() => setScore(score + 1)}>Increase score</button> */}
       <div
         style={{
@@ -591,7 +591,7 @@ export default function Level1() {
               borderRadius: "12px",
             }}
           >
-            Next level
+            שלב הבא
           </Link>
         )}
       </div>
