@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useApplicationContext } from "@/app/ApplicationContext";
-import { start } from "repl";
 
 export default function Level1() {
   const { score, setScore } = useApplicationContext();
@@ -19,13 +18,9 @@ export default function Level1() {
   const [gainNode, setGainNode] = useState<GainNode | null>(null);
   const [loopInterval, setLoopInterval] = useState<NodeJS.Timeout | null>(null);
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const [showChoices, setShowChoices] = useState<boolean>(false);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [missionCompleted, setMissionCompleted] = useState<boolean>(false);
   const [canProceed, setCanProceed] = useState<boolean>(false);
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
-    null
-  );
 
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
 
