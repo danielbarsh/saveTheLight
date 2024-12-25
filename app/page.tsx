@@ -61,7 +61,7 @@ export default function Home() {
     },
   };
 
-  const startGame = () => {};
+  const startGame = () => { };
 
   const showOptions = () => {
     alert(language === "he" ? "פתיחת אפשרויות..." : "Opening options...");
@@ -91,14 +91,14 @@ export default function Home() {
           <button style={styles.menuButton} onClick={showOptions}>
             {language === "he" ? "אפשרויות" : "Options"}
           </button>
-          <button style={styles.menuButton} onClick={exitGame}>
-            {language === "he" ? "יציאה" : "Exit"}
-          </button>
           <button
             style={styles.menuButton}
             onClick={() => setLanguage((prev) => (prev === "he" ? "en" : "he"))}
           >
-            {language === "he" ? "Change Language" : "שנה שפה"}
+            {language === "he" ? "שנה שפה" : "Change Language"}
+          </button>
+          <button style={styles.menuButton} onClick={exitGame}>
+            {language === "he" ? "יציאה" : "Exit"}
           </button>
         </div>
       </div>
