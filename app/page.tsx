@@ -70,7 +70,7 @@ export default function Home() {
   const exitGame = () => {
     const confirmExit =
       language === "he"
-        ? "האם אתה בטוח שברצונך לצאת??"
+        ? "האם אתה בטוח שברצונך לצאת?"
         : "Are you sure you want to exit?";
     if (window.confirm(confirmExit)) {
       window.close();
