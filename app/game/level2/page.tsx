@@ -403,6 +403,9 @@ export default function Level2() {
     >
       <h1>Level 2</h1>
       <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
+        <div className="fixed top-4 left-4 z-10 bg-black bg-opacity-50 px-4 py-2 rounded text-white text-2xl font-bold">
+          Score: {score}
+        </div>
         <button
           onClick={togglePlay}
           className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
@@ -508,67 +511,125 @@ export default function Level2() {
                 {playerChoice === "help"
                   ? "תודה רבה על האומץ שלך"
                   : playerChoice === "flee"
-                    ? "לא! רק אל תעזוב אותי"
-                    : playerChoice === "negotiate"
-                      ? "הדרקון לא רוצה לשוחח"
-                      : "אני מקווה שתחליט מהר"}
+                  ? "לא! רק אל תעזוב אותי"
+                  : playerChoice === "negotiate"
+                  ? "הדרקון לא רוצה לשוחח"
+                  : "אני מקווה שתחליט מהר"}
               </p>
             ) : (
               <>
                 <p>הצילו! תציל אותי מהדרקון האיום</p>
-                <div className="flex justify-around mt-4">
-                  <button
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                      handleChoice("help");
-                      setScore(score + 5);
-                      setTimeout(() => {
-                        setShowDialog(false);
-                      }, 2000);
-                      window.location.href = "/game/print";
-                    }}
-                  >
-                    תעזור לקוסם
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                      handleChoice("flee");
-                      setScore(score - 5);
-                      setTimeout(() => {
-                        setShowDialog(false);
-                      }, 2000);
-                      window.location.href = "/game/print";
-                    }}
-                  >
-                    לברוח מהדרקון
-                  </button>
-                  <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                      handleChoice("negotiate");
-                      setScore(score + 2);
-                      setTimeout(() => {
-                        setShowDialog(false);
-                        window.location.href = "/game/print";
-                      }, 2000);
-                    }}
-                  >
-                    משא ומתן עם הדרקון
-                  </button>
-                  <button
-                    className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
-                      handleChoice("wait");
-                      setScore(score - 5);
-                      setTimeout(() => {
-                        setShowDialog(false);
-                      }, 2000);
-                      window.location.href = "/game/print";
-                    }}
-                  >
-                    אחכה ואראה מה יהיה
-                  </button>
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                  <div className="bg-black bg-opacity-90 p-6 rounded-lg max-w-2xl w-full mx-4">
+                    <p className="text-white text-xl text-center mb-6">
+                      הצילו! תציל אותי מהדרקון האיום
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Help Wizard Choice */}
+                      <div className="bg-gray-900 p-4 rounded-lg">
+                        <button
+                          onClick={() => {
+                            handleChoice("help");
+                            setScore(score + 5);
+                            setTimeout(() => {
+                              setShowDialog(false);
+                            }, 2000);
+                            window.location.href = "/game/print";
+                          }}
+                          className="w-full h-full flex flex-col items-center gap-3"
+                        >
+                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                            <img
+                              src="/images/helping-hands.jpg"
+                              alt="Help wizard"
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </div>
+                          <span className="text-white text-right w-full">
+                            תעזור לקוסם
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Run from Dragon Choice */}
+                      <div className="bg-gray-900 p-4 rounded-lg">
+                        <button
+                          onClick={() => {
+                            handleChoice("flee");
+                            setScore(score - 5);
+                            setTimeout(() => {
+                              setShowDialog(false);
+                            }, 2000);
+                            window.location.href = "/game/print";
+                          }}
+                          className="w-full h-full flex flex-col items-center gap-3"
+                        >
+                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                            <img
+                              src="/images/runaway.png"
+                              alt="Run from dragon"
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </div>
+                          <span className="text-white text-right w-full">
+                            לברוח מהדרקון
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Negotiate with Dragon Choice */}
+                      <div className="bg-gray-900 p-4 rounded-lg">
+                        <button
+                          onClick={() => {
+                            handleChoice("negotiate");
+                            setScore(score + 2);
+                            setTimeout(() => {
+                              setShowDialog(false);
+                              window.location.href = "/game/print";
+                            }, 2000);
+                          }}
+                          className="w-full h-full flex flex-col items-center gap-3"
+                        >
+                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                            <img
+                              src="/images/scales.png"
+                              alt="Negotiate with dragon"
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </div>
+                          <span className="text-white text-right w-full">
+                            משא ומתן עם הדרקון
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Wait and See Choice */}
+                      <div className="bg-gray-900 p-4 rounded-lg">
+                        <button
+                          onClick={() => {
+                            handleChoice("wait");
+                            setScore(score - 5);
+                            setTimeout(() => {
+                              setShowDialog(false);
+                            }, 2000);
+                            window.location.href = "/game/print";
+                          }}
+                          className="w-full h-full flex flex-col items-center gap-3"
+                        >
+                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                            <img
+                              src="/images/sandclock.png"
+                              alt="Wait and see"
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          </div>
+                          <span className="text-white text-right w-full">
+                            אחכה ואראה מה יהיה
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </>
             )}
@@ -585,7 +646,6 @@ export default function Level2() {
       <div className="mt-4 text-white">
         <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
-      <h1>score: {score}</h1>
     </div>
   );
 }
