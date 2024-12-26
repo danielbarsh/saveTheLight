@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +24,9 @@ export default function Level1() {
   const [canProceed, setCanProceed] = useState<boolean>(false);
 
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
+  const [volume, setVolume] = useState(1);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const map = [
     [
@@ -230,12 +233,22 @@ export default function Level1() {
     };
   }, []);
 
-
-
   // Add this useEffect at the beginning of your component
   useEffect(() => {
     setScore(0);
   }, []); // Empty dependency array means this runs once when component mounts
+
+  useEffect(() => {
+    if (showDialog && audioRef.current) {
+      audioRef.current.play();
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, [showDialog]);
 
   const playNote = (frequency: any, startTime: any, duration: any) => {
     if (!audioContext || !gainNode) return;
@@ -387,6 +400,31 @@ export default function Level1() {
       <h1>Level 1</h1>
 
       <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
+        <div className="fixed top-4 left-4 z-10 bg-black bg-opacity-50 px-4 py-2 rounded text-white text-2xl font-bold">
+          Score: {score}
+        </div>
+        <button
+          onClick={togglePlay}
+          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
+        >
+          {isPlaying ? (
+            <Pause className="text-white w-6 h-6" />
+          ) : (
+            <Play className="text-white w-6 h-6" />
+          )}
+        </button>
+        <button
+          onClick={toggleMute}
+          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
+        >
+          {isMuted ? (
+            <VolumeX className="text-white w-6 h-6" />
+          ) : (
+            <Volume2 className="text-white w-6 h-6" />
+          )}
+        </button>
+      </div>
+      <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
         <button
           onClick={togglePlay}
           className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
@@ -432,16 +470,16 @@ export default function Level1() {
                 {cell === 0
                   ? tiles.path
                   : cell === 1
-                    ? tiles.grass
-                    : cell === 2
-                      ? tiles.tree
-                      : cell === 3
-                        ? tiles.house
-                        : cell === 4
-                          ? tiles.water
-                          : cell === 5
-                            ? tiles.magician
-                            : tiles.path}
+                  ? tiles.grass
+                  : cell === 2
+                  ? tiles.tree
+                  : cell === 3
+                  ? tiles.house
+                  : cell === 4
+                  ? tiles.water
+                  : cell === 5
+                  ? tiles.magician
+                  : tiles.path}
               </svg>
             </div>
           ))
@@ -469,63 +507,135 @@ export default function Level1() {
             </p>
 
             {!selectedChoice ? (
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedChoice("ignore");
-                    setScore(score - 5);
-                    setMissionCompleted(true);
-                    setCanProceed(true);
-                    setTimeout(() => {
-                      setShowDialog(false);
-                    }, 2000);
-                  }}
-                  className="w-full text-right bg-purple-700 hover:bg-purple-600 p-2 rounded transition-colors"
-                >
-                  להתעלם מהמכשף
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedChoice("directions");
-                    setScore(score + 8);
-                    setMissionCompleted(true);
-                    setCanProceed(true);
-                    setTimeout(() => {
-                      setShowDialog(false);
-                    }, 2000);
-                  }}
-                  className="w-full text-right bg-purple-700 hover:bg-purple-600 p-2 rounded transition-colors"
-                >
-                  לתת למכשף הוראות הגעה מפורטות
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedChoice("map");
-                    setScore(score + 8);
-                    setMissionCompleted(true);
-                    setCanProceed(true);
-                    setTimeout(() => {
-                      setShowDialog(false);
-                    }, 2000);
-                  }}
-                  className="w-full text-right bg-purple-700 hover:bg-purple-600 p-2 rounded transition-colors"
-                >
-                  לתת למכשף מפה
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedChoice("thief");
-                    setScore(score - 5);
-                    setMissionCompleted(true);
-                    setCanProceed(true);
-                    setTimeout(() => {
-                      setShowDialog(false);
-                    }, 2000);
-                  }}
-                  className="w-full text-right bg-purple-700 hover:bg-purple-600 p-2 rounded transition-colors"
-                >
-                  לגנוב למכשף את החפצים
-                </button>
+              <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="bg-black bg-opacity-90 p-6 rounded-lg max-w-2xl w-full mx-4">
+                  <p className="text-white text-xl text-center mb-6">
+                    ?היי! איבדתי את הדרך, האם תוכל לעזור לי
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Ignore Wizard Choice */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setSelectedChoice("ignore");
+                          setScore(score - 5);
+                          setMissionCompleted(true);
+                          setCanProceed(true);
+                          setTimeout(() => {
+                            setShowDialog(false);
+                          }, 2000);
+                        }}
+                        className="w-full h-full flex flex-col items-center gap-3"
+                      >
+                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <img
+                            src="/images/sayNo.png"
+                            alt="Ignore wizard"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <span className="text-white text-right w-full">
+                          להתעלם מהמכשף
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Give Directions Choice */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setSelectedChoice("directions");
+                          setScore(score + 8);
+                          setMissionCompleted(true);
+                          setCanProceed(true);
+                          setTimeout(() => {
+                            setShowDialog(false);
+                          }, 2000);
+                        }}
+                        className="w-full h-full flex flex-col items-center gap-3"
+                      >
+                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <img
+                            src="/images/livui.jpg"
+                            alt="Give directions"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <span className="text-white text-right w-full">
+                          ללוות את המכשף
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Give Map Choice */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setSelectedChoice("map");
+                          setScore(score + 8);
+                          setMissionCompleted(true);
+                          setCanProceed(true);
+                          setTimeout(() => {
+                            setShowDialog(false);
+                          }, 2000);
+                        }}
+                        className="w-full h-full flex flex-col items-center gap-3"
+                      >
+                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <img
+                            src="/images/map.png"
+                            alt="Give map"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <span className="text-white text-right w-full">
+                          לתת למכשף מפה
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Steal Items Choice */}
+                    <div className="bg-gray-900 p-4 rounded-lg">
+                      <button
+                        onClick={() => {
+                          setSelectedChoice("thief");
+                          setScore(score - 5);
+                          setMissionCompleted(true);
+                          setCanProceed(true);
+                          setTimeout(() => {
+                            setShowDialog(false);
+                          }, 2000);
+                        }}
+                        className="w-full h-full flex flex-col items-center gap-3"
+                      >
+                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
+                          <img
+                            src="/images/thief.png"
+                            alt="Steal items"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <span className="text-white text-right w-full">
+                          לגנוב למכשף את החפצים
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={volume}
+                    onChange={(e) => {
+                      const newVolume = parseFloat(e.target.value);
+                      setVolume(newVolume);
+                      if (audioRef.current) {
+                        audioRef.current.volume = newVolume;
+                      }
+                    }}
+                  />
+                </div>
               </div>
             ) : (
               <div className="text-right">
@@ -533,10 +643,10 @@ export default function Level1() {
                   {selectedChoice === "ignore"
                     ? "אני !מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
                     : selectedChoice === "directions"
-                      ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
-                      : selectedChoice === "map"
-                        ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
-                        : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
+                    ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
+                    : selectedChoice === "map"
+                    ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
+                    : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
                 </p>
               </div>
             )}
@@ -559,7 +669,7 @@ export default function Level1() {
       <div className="mt-4 text-white">
         <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
-      <h1>ניקוד: {score}</h1>
+
       {/* <button onClick={() => setScore(score + 1)}>Increase score</button> */}
       <div
         style={{
