@@ -22,6 +22,7 @@ export default function Level1() {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [missionCompleted, setMissionCompleted] = useState<boolean>(false);
   const [canProceed, setCanProceed] = useState<boolean>(false);
+  const [magicianAudio, setMagicianAudio] = useState<HTMLAudioElement | null>(null);
 
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -233,6 +234,19 @@ export default function Level1() {
     };
   }, []);
 
+  useEffect(() => {
+    const audio = new Audio("/lost.mp3"); // Make sure this path is correct
+    setMagicianAudio(audio);
+  
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.src = ""; // Cleanup
+      }
+    };
+  }, []);
+  
+
   // Add this useEffect at the beginning of your component
   useEffect(() => {
     setScore(0);
@@ -330,9 +344,34 @@ export default function Level1() {
       (x < map[0].length - 1 && map[y][x + 1] === 5) ||
       (y > 0 && map[y - 1][x] === 5) ||
       (y < map.length - 1 && map[y + 1][x] === 5);
-
+  
     if (!missionCompleted) {
       setShowDialog(isBesideMagician);
+    }
+    
+    if (isBesideMagician && magicianAudio) {
+      // Pause background music
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        setLoopInterval(null);
+      }
+      setIsPlaying(false);
+      
+      magicianAudio.currentTime = 0;
+      magicianAudio.play();
+      
+      // Add event listener to resume background music when magician audio ends
+      magicianAudio.onended = () => {
+        if (!isPlaying) {
+          setIsPlaying(true);
+          const duration = (playMelody() || 0) * 1000;
+          const interval = setInterval(playMelody, duration);
+          setLoopInterval(interval);
+        }
+      };
+    } else if (!isBesideMagician && magicianAudio) {
+      magicianAudio.pause();
+      magicianAudio.currentTime = 0;
     }
   };
 

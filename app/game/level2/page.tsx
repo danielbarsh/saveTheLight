@@ -9,7 +9,6 @@ export default function Level2() {
   const TILE_SIZE = 32;
 
   // All state declarations grouped together
-  // All state declarations grouped together
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,19 +20,9 @@ export default function Level2() {
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
   const [isNearDragon, setIsNearDragon] = useState(false);
   const [playerChoice, setPlayerChoice] = useState<string | null>(null);
+  const [magicianAudio, setMagicianAudio] = useState<HTMLAudioElement | null>(null);
 
-  // // Map definition
-  // const map = [
-  //   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  //   [2, 3, 3, 3, 1, 1, 4, 4, 4, 2],
-  //   [2, 3, 3, 3, 0, 0, 4, 4, 4, 2],
-  //   [2, 1, 0, 0, 0, 5, 0, 1, 1, 2], // Magician is 5
-  //   [2, 1, 0, 1, 1, 1, 0, 0, 1, 2],
-  //   [2, 1, 0, 0, 0, 1, 1, 0, 1, 2],
-  //   [2, 1, 1, 0, 0, 0, 0, 0, 1, 2],
-  //   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  // ];
-
+  
   const map = [
     [
       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -250,6 +239,7 @@ export default function Level2() {
     };
   }, []);
 
+
   const playNote = (frequency: any, startTime: any, duration: any) => {
     if (!audioContext || !gainNode) return;
 
@@ -294,6 +284,18 @@ export default function Level2() {
     return timeOffset;
   };
 
+  useEffect(() => {
+    const audio = new Audio("/meetdragon.mp3"); // Make sure the path is correct
+    setMagicianAudio(audio);
+  
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.src = "";
+      }
+    };
+  }, []);
+
   const togglePlay = () => {
     if (!isPlaying) {
       setIsPlaying(true);
@@ -331,13 +333,38 @@ export default function Level2() {
       (y > 0 && map[y - 1][x] === 5) ||
       (y < map.length - 1 && map[y + 1][x] === 5);
     setShowDialog(isBesideMagician);
-
+  
     const isBesideDragon =
       (x > 0 && map[y][x - 1] === 7) ||
       (x < map[0].length - 1 && map[y][x + 1] === 7) ||
       (y > 0 && map[y - 1][x] === 7) ||
       (y < map.length - 1 && map[y + 1][x] === 7);
     setIsNearDragon(isBesideDragon);
+  
+    if ((isBesideMagician || isBesideDragon) && magicianAudio) {
+      // Pause background music
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        setLoopInterval(null);
+      }
+      setIsPlaying(false);
+      
+      magicianAudio.currentTime = 0;
+      magicianAudio.play();
+      
+      // Add event listener to resume background music when magician audio ends
+      magicianAudio.onended = () => {
+        if (!isPlaying) {
+          setIsPlaying(true);
+          const duration = (playMelody() || 0) * 1000;
+          const interval = setInterval(playMelody, duration);
+          setLoopInterval(interval);
+        }
+      };
+    } else if (!isBesideMagician && !isBesideDragon && magicianAudio) {
+      magicianAudio.pause();
+      magicianAudio.currentTime = 0;
+    }
   };
 
   const handleChoice = (choice: string) => {
