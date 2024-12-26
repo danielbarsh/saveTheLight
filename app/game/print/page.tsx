@@ -35,13 +35,10 @@ export default function DiagnosisPage() {
 
         {/* Disclaimer */}
         <p className="text-black font-bold mt-4">
-          *יש לציין שהתוצאות אינם חד משמעיות והמשחק אינו מהווה חלופה לאבחון
+          יש לציין שהתוצאות אינם חד משמעיות והמשחק אינו מהווה חלופה לאבחון
           פסיכולוגי
         </p>
       </div>
-
-      {/* Debugging Score */}
-      <h1 className="mt-4 text-xl font-bold">Score: {score}</h1>
     </div>
   );
 }

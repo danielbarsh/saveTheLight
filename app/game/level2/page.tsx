@@ -585,7 +585,7 @@ export default function Level2() {
       <div className="mt-4 text-white">
         <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
-      <h1>score: {score}</h1>
+      <h1>ניקוד: {score}</h1>
     </div>
   );
 }
