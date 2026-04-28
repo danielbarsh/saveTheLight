@@ -211,9 +211,6 @@ export default function Level1() {
 
   // ─── Initialize magician audio (lost.mp3) ────────────────────────────────
   useEffect(() => {
-    const audio = new Audio("/lost.mp3"); // Make sure this path is correct
-    setMagicianAudio(audio);
-
     const mag = new Audio("/lost.mp3");
     magicianAudioRef.current = mag;
 
@@ -222,9 +219,6 @@ export default function Level1() {
       mag.src = "";
     };
   }, []);
-
-
-  // Add this useEffect at the beginning of your component
 
   // ─── Reset score on mount ─────────────────────────────────────────────────
   useEffect(() => {
@@ -268,12 +262,9 @@ export default function Level1() {
       (y > 0 && map[y - 1][x] === 5) ||
       (y < map.length - 1 && map[y + 1][x] === 5);
 
-
     if (!missionCompleted) {
       setShowDialog(isBesideMagician);
     }
-
-    if (isBesideMagician && magicianAudio) {
 
     const bg = bgMusicRef.current;
     const mag = magicianAudioRef.current;
@@ -282,13 +273,6 @@ export default function Level1() {
       // Pause background music
       if (bg) bg.pause();
       setIsPlaying(false);
-
-      magicianAudio.currentTime = 0;
-      magicianAudio.play();
-
-      // Add event listener to resume background music when magician audio ends
-      magicianAudio.onended = () => {
-        if (!isPlaying) {
 
       mag.currentTime = 0;
       mag.play();
@@ -417,16 +401,6 @@ export default function Level1() {
                 {cell === 0
                   ? tiles.path
                   : cell === 1
-                    ? tiles.grass
-                    : cell === 2
-                      ? tiles.tree
-                      : cell === 3
-                        ? tiles.house
-                        : cell === 4
-                          ? tiles.water
-                          : cell === 5
-                            ? tiles.magician
-                            : tiles.path}
                     ? tiles.grass
                     : cell === 2
                       ? tiles.tree
@@ -569,10 +543,6 @@ export default function Level1() {
                   {selectedChoice === "ignore"
                     ? "אני !מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
                     : selectedChoice === "directions"
-                      ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
-                      : selectedChoice === "map"
-                        ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
-                        : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
                       ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
                       : selectedChoice === "map"
                         ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
