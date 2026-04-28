@@ -4,22 +4,98 @@ import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
 
+const TILE_SIZE = 32;
+
+const TILE_PATH = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#3a2a1a" />
+    <rect x="0" y="0" width="16" height="16" fill="#2e2010" />
+    <rect x="16" y="16" width="16" height="16" fill="#2e2010" />
+  </g>
+);
+const TILE_GRASS = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#2a4a1a" />
+    <circle cx="8" cy="8" r="2" fill="#1e3812" />
+    <circle cx="24" cy="24" r="2" fill="#1e3812" />
+  </g>
+);
+const TILE_TREE = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#0a0e04" />
+    <rect x="13" y="20" width="6" height="12" fill="#3a1e08" />
+    <path d="M16,3 L29,20 L3,20 Z" fill="#142808" />
+    <path d="M16,7 L25,18 L7,18 Z" fill="#1c3810" />
+  </g>
+);
+const TILE_WATER = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#0a1e3a" />
+    <path d="M0,8 Q8,4 16,8 Q24,12 32,8" stroke="#1a3a6a" strokeWidth="2" fill="none" />
+    <path d="M0,18 Q8,14 16,18 Q24,22 32,18" stroke="#1a3a6a" strokeWidth="2" fill="none" />
+  </g>
+);
+const TILE_ROCK = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#1a1208" />
+    <path d="M8,24 L4,16 L8,8 L16,4 L24,8 L28,16 L24,24 L16,28 Z" fill="#4a4038" />
+    <path d="M16,4 L24,8 L20,12 L12,8 Z" fill="#6a6050" />
+    <path d="M24,24 L16,28 L12,20 L20,16 Z" fill="#383028" />
+  </g>
+);
+const TILE_MAGICIAN = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#2a1a40" />
+    <path d="M14,3 L16,0 L18,3 L21,2 L20,5 L23,6 L20,7 L21,10 L18,9 L16,12 L14,9 L11,10 L12,7 L9,6 L12,5 L11,2 Z" fill="#ffd700" />
+    <path d="M12,12 h8 v3 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-3" fill="#6a0dad" />
+    <path d="M12,14 h8 v5 h-8 v-5" fill="#ffd5b0" />
+    <path d="M13,16 h2 v2 h-2 v-2 M17,16 h2 v2 h-2 v-2" fill="#222" />
+    <path d="M10,19 h12 v10 h-12 v-10" fill="#4b0082" />
+    <path d="M22,16 h2 v11 h-2 v-11" fill="#6b3010" />
+    <path d="M21,14 h4 v4 h-4 v-4" fill="#ffd700" />
+  </g>
+);
+
+const HERO_SVG = (
+  <g>
+    <path d="M12,4 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2" fill="#c8a020" />
+    <path d="M12,6 h8 v6 h-8 v-6" fill="#ffd5b0" />
+    <path d="M13,8 h2 v2 h-2 v-2 M17,8 h2 v2 h-2 v-2" fill="#111" />
+    <path d="M10,12 h12 v10 h-12 v-10" fill="#1a5c1a" />
+    <path d="M10,18 h12 v2 h-12 v-2" fill="#6b3010" />
+    <path d="M10,22 h4 v6 h-4 v-6 M18,22 h4 v6 h-4 v-6" fill="#4a2e10" />
+    <path d="M4,12 h6 v8 h-6 v-8" fill="#8b6914" />
+    <path d="M5,13 h4 v6 h-4 v-6" fill="#a07820" />
+  </g>
+);
+
+const DRAGON_SVG = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#1a0808" />
+    <ellipse cx="16" cy="18" rx="12" ry="10" fill="#6a0808" />
+    <path d="M8,10 L4,2 L12,8 Z" fill="#8a0a0a" />
+    <path d="M24,10 L28,2 L20,8 Z" fill="#8a0a0a" />
+    <circle cx="12" cy="14" r="3" fill="#ff2000" />
+    <circle cx="20" cy="14" r="3" fill="#ff2000" />
+    <circle cx="12" cy="14" r="1" fill="#ffaa00" />
+    <circle cx="20" cy="14" r="1" fill="#ffaa00" />
+    <path d="M10,22 Q16,28 22,22" stroke="#8a1010" strokeWidth="2" fill="none" />
+    <path d="M4,20 Q0,24 4,28 Q6,24 8,22" fill="#6a0808" />
+    <path d="M28,20 Q32,24 28,28 Q26,24 24,22" fill="#6a0808" />
+  </g>
+);
+
 export default function Level2() {
-  const { score, setScore } = useApplicationContext();
-  const TILE_SIZE = 32;
+  const { score, setScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
 
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showDialog, setShowDialog] = useState<boolean>(false);
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
   const [isNearDragon, setIsNearDragon] = useState(false);
+  const [isNearMagician, setIsNearMagician] = useState(false);
   const [playerChoice, setPlayerChoice] = useState<string | null>(null);
-  const [volume, setVolume] = useState(1);
+  const [entryScore] = useState(score);
 
-  // Audio refs
-  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const dragonAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const map = [
@@ -45,282 +121,159 @@ export default function Level2() {
     [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
   ];
 
-  const tiles = {
-    path: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#e8d4b5" />
-        <rect x="0" y="0" width="16" height="16" fill="#dcc5a7" />
-        <rect x="16" y="16" width="16" height="16" fill="#dcc5a7" />
-      </g>
-    ),
-    grass: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#71aa34" />
-        <circle cx="8" cy="8" r="2" fill="#5d8c2a" />
-        <circle cx="24" cy="24" r="2" fill="#5d8c2a" />
-        <circle cx="24" cy="8" r="2" fill="#5d8c2a" />
-      </g>
-    ),
-    tree: (
-      <g>
-        <rect x="12" y="20" width="8" height="12" fill="#6e4e2c" />
-        <path d="M16,4 L28,20 L4,20 Z" fill="#2d5a1e" />
-        <path d="M16,8 L24,18 L8,18 Z" fill="#3a7325" />
-      </g>
-    ),
-    house: (
-      <g>
-        <rect x="4" y="12" width="24" height="20" fill="#8b4513" />
-        <polygon points="16,2 30,12 2,12" fill="#654321" />
-        <rect x="12" y="20" width="8" height="12" fill="#4a3728" />
-      </g>
-    ),
-    water: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#4fa4f4" />
-        <path d="M0,4 Q8,0 16,4 Q24,8 32,4" stroke="#65b5ff" strokeWidth="2" fill="none" />
-      </g>
-    ),
-    magician: (
-      <g>
-        <path d="M12,6 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2" fill="#800080" />
-        <path d="M12,8 h8 v6 h-8 v-6" fill="#ffd5b0" />
-        <path d="M13,10 h2 v2 h-2 v-2 M17,10 h2 v2 h-2 v-2" fill="#000" />
-        <path d="M10,14 h12 v10 h-12 v-10" fill="#4b0082" />
-        <path d="M10,20 h12 v2 h-12 v-2" fill="#800080" />
-        <path d="M22,10 h2 v12 h-2 v-12" fill="#8b4513" />
-        <path d="M21,8 h4 v4 h-4 v-4" fill="#ffd700" />
-      </g>
-    ),
-    rock: (
-      <g>
-        <path d="M8,24 L4,16 L8,8 L16,4 L24,8 L28,16 L24,24 L16,28 Z" fill="#808080" />
-        <path d="M16,4 L24,8 L20,12 L12,8 Z" fill="#A0A0A0" />
-        <path d="M24,24 L16,28 L12,20 L20,16 Z" fill="#606060" />
-        <line x1="12" y1="14" x2="16" y2="16" stroke="#707070" strokeWidth="1" />
-        <line x1="20" y1="12" x2="22" y2="16" stroke="#707070" strokeWidth="1" />
-      </g>
-    ),
-  };
-
-  const hero: any = {
-    down: (
-      <g>
-        <path d="M12,6 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2" fill="#ffd700" />
-        <path d="M12,8 h8 v6 h-8 v-6" fill="#ffd5b0" />
-        <path d="M13,10 h2 v2 h-2 v-2 M17,10 h2 v2 h-2 v-2" fill="#000" />
-        <path d="M10,14 h12 v10 h-12 v-10" fill="#228b22" />
-        <path d="M10,20 h12 v2 h-12 v-2" fill="#8b4513" />
-        <path d="M10,24 h4 v4 h-4 v-4 M18,24 h4 v4 h-4 v-4" fill="#654321" />
-        <path d="M20,14 h6 v8 h-6 v-8" fill="#4169e1" />
-        <path d="M21,15 h4 v6 h-4 v-6" fill="#1e90ff" />
-      </g>
-    ),
-  };
-
-  // ─── Initialize background music (ost.mp3) ───────────────────────────────
   useEffect(() => {
-    const bg = new Audio("/ost.mp3");
-    bg.loop = true;
-    bg.volume = volume;
-    bgMusicRef.current = bg;
-
-    return () => {
-      bg.pause();
-      bg.src = "";
-    };
+    const d = new Audio("/meetdragon.mp3");
+    dragonAudioRef.current = d;
+    return () => { d.pause(); d.src = ""; };
   }, []);
 
-  // ─── Initialize dragon/magician audio (meetdragon.mp3) ───────────────────
-  useEffect(() => {
-    const dragon = new Audio("/meetdragon.mp3");
-    dragonAudioRef.current = dragon;
+  const checkProximity = (x: number, y: number) => {
+    const nearMag =
+      (x > 0 && map[y][x - 1] === 5) || (x < map[0].length - 1 && map[y][x + 1] === 5) ||
+      (y > 0 && map[y - 1][x] === 5) || (y < map.length - 1 && map[y + 1][x] === 5);
+    const nearDragon =
+      (x > 0 && map[y][x - 1] === 7) || (x < map[0].length - 1 && map[y][x + 1] === 7) ||
+      (y > 0 && map[y - 1][x] === 7) || (y < map.length - 1 && map[y + 1][x] === 7);
 
-    return () => {
-      dragon.pause();
-      dragon.src = "";
-    };
-  }, []);
-
-  // ─── Sync volume ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (bgMusicRef.current) {
-      bgMusicRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
-  // ─── Play / Pause ─────────────────────────────────────────────────────────
-  const togglePlay = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-    if (isPlaying) {
-      bg.pause();
-      setIsPlaying(false);
-    } else {
-      bg.play();
-      setIsPlaying(true);
-    }
-  };
-
-  // ─── Mute / Unmute ────────────────────────────────────────────────────────
-  const toggleMute = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-    bg.volume = isMuted ? volume : 0;
-    setIsMuted(!isMuted);
-  };
-
-  // ─── Proximity check ─────────────────────────────────────────────────────
-  const checkMagicianInteraction = (x: number, y: number) => {
-    const isBesideMagician =
-      (x > 0 && map[y][x - 1] === 5) ||
-      (x < map[0].length - 1 && map[y][x + 1] === 5) ||
-      (y > 0 && map[y - 1][x] === 5) ||
-      (y < map.length - 1 && map[y + 1][x] === 5);
-
-    const isBesideDragon =
-      (x > 0 && map[y][x - 1] === 7) ||
-      (x < map[0].length - 1 && map[y][x + 1] === 7) ||
-      (y > 0 && map[y - 1][x] === 7) ||
-      (y < map.length - 1 && map[y + 1][x] === 7);
-
-    setShowDialog(isBesideMagician);
-    setIsNearDragon(isBesideDragon);
+    setIsNearMagician(nearMag);
+    setIsNearDragon(nearDragon);
 
     const bg = bgMusicRef.current;
     const dragon = dragonAudioRef.current;
-
-    if ((isBesideMagician || isBesideDragon) && dragon) {
+    if ((nearMag || nearDragon) && dragon && !playerChoice) {
       if (bg) bg.pause();
       setIsPlaying(false);
-
       dragon.currentTime = 0;
       dragon.play();
-
-      dragon.onended = () => {
-        if (bg) {
-          bg.play();
-          setIsPlaying(true);
-        }
-      };
-    } else if (!isBesideMagician && !isBesideDragon && dragon) {
+      dragon.onended = () => { if (bg) { bg.play(); setIsPlaying(true); } };
+    } else if (!nearMag && !nearDragon && dragon) {
       dragon.pause();
       dragon.currentTime = 0;
     }
   };
 
-  const handleChoice = (choice: string) => {
-    setPlayerChoice(choice);
+  const makeChoice = (
+    key: string, delta: number,
+    social: number, resilience: number, empathy: number, hope: number, agency: number
+  ) => {
+    setScore((s) => s + delta);
+    addChoice({ level: 2, npc: "דרקון", choice: key, delta, social, resilience, empathy, hope, agency });
+    setPlayerChoice(key);
+    setTimeout(() => { window.location.href = "/game/level3"; }, 1500);
   };
 
-  // ─── Keyboard movement ────────────────────────────────────────────────────
   useEffect(() => {
-    const handleKeyDown = (e: any) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isNearDragon && !playerChoice) return;
       let newX = position.x;
       let newY = position.y;
       let newFacing = facing;
 
       switch (e.key) {
-        case "ArrowUp":
-          newY = Math.max(0, position.y - 1);
-          newFacing = "up";
-          break;
-        case "ArrowDown":
-          newY = Math.min(map.length - 1, position.y + 1);
-          newFacing = "down";
-          break;
-        case "ArrowLeft":
-          newX = Math.max(0, position.x - 1);
-          newFacing = "left";
-          break;
-        case "ArrowRight":
-          newX = Math.min(map[0].length - 1, position.x + 1);
-          newFacing = "right";
-          break;
+        case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
+        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
+        case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
+        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        default: return;
       }
 
       const nextTile = map[newY][newX];
-      const isWalkable = ![2, 3, 6, 5].includes(nextTile);
+      if ([2, 3, 5, 6, 7].includes(nextTile)) { setFacing(newFacing); return; }
 
-      if (isWalkable) {
-        if (map[newY][newX] === 4) {
-          setShowDrowningMessage(true);
-          setTimeout(() => {
-            setShowDrowningMessage(false);
-            setPosition({ x: 3, y: 3 });
-            setScore(0);
-            setShowDialog(false);
-          }, 2000);
-        } else {
-          setPosition({ x: newX, y: newY });
-          checkMagicianInteraction(newX, newY);
-        }
+      if (nextTile === 4) {
+        setShowDrowningMessage(true);
+        setTimeout(() => {
+          setShowDrowningMessage(false);
+          setPosition({ x: 3, y: 3 });
+          setScore(entryScore);
+          setIsNearDragon(false);
+          setIsNearMagician(false);
+        }, 2000);
+      } else {
+        setPosition({ x: newX, y: newY });
+        checkProximity(newX, newY);
       }
       setFacing(newFacing);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [position, facing]);
+  }, [position, facing, isNearDragon, playerChoice, entryScore]);
+
+  const getTile = (cell: number) => {
+    switch (cell) {
+      case 0: return TILE_PATH;
+      case 1: return TILE_GRASS;
+      case 2: return TILE_TREE;
+      case 4: return TILE_WATER;
+      case 5: return TILE_MAGICIAN;
+      case 6: return TILE_ROCK;
+      default: return TILE_PATH;
+    }
+  };
+
+  const choiceResponses: Record<string, string> = {
+    help:      "!אומץ לב אמיתי! הדרקון נסוג. הקוסם חופשי",
+    flee:      "...רצת. הקוסם נשאר לבד. הצל מתחזק",
+    negotiate: "ניסית לדבר... הדרקון לא הקשיב. אבל האומץ שלך נרשם",
+    wait:      "...המתנת. הזמן עבר. הקוסם עדיין שם",
+  };
 
   return (
     <div
-      className="flex flex-col items-center p-4 bg-gray-800"
-      style={{ minHeight: "100vh", justifyContent: "center", width: "100%" }}
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        background: "linear-gradient(180deg, #0e0808 0%, #0a0a0a 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        fontFamily: "serif",
+      }}
     >
-      <h1>Level 2</h1>
-
-      {/* Controls */}
-      <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
-        <div className="fixed top-4 left-4 z-10 bg-black bg-opacity-50 px-4 py-2 rounded text-white text-2xl font-bold">
-          Score: {score}
-        </div>
-        <button
-          onClick={togglePlay}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isPlaying ? <Pause className="text-white w-6 h-6" /> : <Play className="text-white w-6 h-6" />}
-        </button>
-        <button
-          onClick={toggleMute}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isMuted ? <VolumeX className="text-white w-6 h-6" /> : <Volume2 className="text-white w-6 h-6" />}
-        </button>
+      {/* HUD */}
+      <div style={{ position: "fixed", top: 12, left: 12, zIndex: 10, background: "rgba(0,0,0,0.8)", border: "1px solid #8a1010", borderRadius: 8, padding: "8px 16px" }}>
+        <div style={{ color: "#c03030", fontSize: 13, letterSpacing: 1 }}>ניקוד</div>
+        <div style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>{score}</div>
       </div>
 
-      {/* Drowning overlay */}
-      {showDrowningMessage && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: "rgba(0,0,0,0.7)" }}>
-          <div className="bg-black border-2 border-white text-white p-8 rounded-lg text-center">
-            <h2 className="text-2xl mb-4">!טבעת במים</h2>
-            <p>המשחק מתחיל מחדש</p>
-          </div>
-        </div>
-      )}
+      {/* Audio controls */}
+      <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #555" }}>
+        <button onClick={togglePlay} style={{ background: "#3a0a0a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+        </button>
+        <button onClick={toggleMute} style={{ background: "#3a0a0a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+        </button>
+        <input
+          type="range" min="0" max="1" step="0.05" value={volume}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            setVolume(v);
+            if (bgMusicRef.current && !isMuted) bgMusicRef.current.volume = v;
+          }}
+          style={{ width: 64, accentColor: "#c03030" }}
+        />
+      </div>
+
+      {/* Level header */}
+      <div style={{ textAlign: "center", marginBottom: 12 }}>
+        <div style={{ color: "#666", fontSize: 11, letterSpacing: 3, textTransform: "uppercase" }}>פרק ב׳</div>
+        <h1 style={{ color: "#c03030", fontSize: 22, margin: "4px 0", textShadow: "0 0 20px rgba(180,20,20,0.6)" }}>מאורת הדרקון</h1>
+        <p style={{ color: "#555", fontSize: 12, margin: 0 }}>דרקון הצל לכד קוסם — הגיע הזמן לפעול</p>
+      </div>
 
       {/* Map */}
-      <div className="relative" style={{ width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE }}>
+      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #3a0808", boxShadow: "0 0 40px rgba(100,0,0,0.5)" }}>
         {map.map((row, y) =>
           row.map((cell, x) => (
-            <div
-              key={`${x}-${y}`}
-              className="absolute"
-              style={{ left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}
-            >
+            <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
               {cell === 7 ? (
-                <img src="/images/EuropeanDragon.png" width={TILE_SIZE} height={TILE_SIZE} alt="dragon" />
+                <svg width={TILE_SIZE} height={TILE_SIZE}>{DRAGON_SVG}</svg>
               ) : (
-                <svg width={TILE_SIZE} height={TILE_SIZE}>
-                  {cell === 0 ? tiles.path
-                    : cell === 1 ? tiles.grass
-                    : cell === 2 ? tiles.tree
-                    : cell === 3 ? tiles.house
-                    : cell === 4 ? tiles.water
-                    : cell === 5 ? tiles.magician
-                    : cell === 6 ? tiles.rock
-                    : tiles.path}
-                </svg>
+                <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
               )}
             </div>
           ))
@@ -328,106 +281,91 @@ export default function Level2() {
 
         {/* Hero */}
         <div
-          className="absolute transition-all duration-100"
           style={{
+            position: "absolute",
             left: position.x * TILE_SIZE,
             top: position.y * TILE_SIZE,
             width: TILE_SIZE,
             height: TILE_SIZE,
-            transform: `scale(${facing === "left" ? -1 : 1}, 1)`,
+            transition: "left 0.1s, top 0.1s",
+            transform: `scaleX(${facing === "left" ? -1 : 1})`,
           }}
         >
-          <svg width={TILE_SIZE} height={TILE_SIZE}>
-            {hero[facing as any] || hero.down}
-          </svg>
+          <svg width={TILE_SIZE} height={TILE_SIZE}>{HERO_SVG}</svg>
         </div>
+      </div>
 
-        {/* Dragon dialog */}
-        {isNearDragon && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4 m-2 rounded">
+      <div style={{ marginTop: 8, color: "#444", fontSize: 11, textAlign: "center" }}>
+        השתמש בחיצים לתנועה • התקרב לדרקון לעימות
+      </div>
+
+      {/* Drowning overlay */}
+      {showDrowningMessage && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,20,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+          <div style={{ background: "#0a0a1a", border: "2px solid #1a3a7a", color: "#4a8af0", padding: "32px 48px", borderRadius: 12, textAlign: "center" }}>
+            <h2 style={{ fontSize: 28, margin: "0 0 8px" }}>טבעת!</h2>
+            <p style={{ color: "#666", margin: 0 }}>חוזר לנקודת הכניסה...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Magician greeting */}
+      {isNearMagician && !isNearDragon && (
+        <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "rgba(10,10,30,0.95)", border: "1px solid #4b0082", borderRadius: 8, padding: "12px 24px", color: "#c8a0ff", fontSize: 14, direction: "rtl", maxWidth: 400 }}>
+          אלדרין: "נוסע, היזהר! הדרקון קרוב. אני מאמין בך..."
+        </div>
+      )}
+
+      {/* Dragon dialog */}
+      {isNearDragon && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.88)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: "#0d0808", border: "2px solid #8a1010", borderRadius: 12, padding: 28, maxWidth: 580, width: "90%", direction: "rtl" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, borderBottom: "1px solid #2a1010", paddingBottom: 16 }}>
+              <svg width={48} height={48} style={{ flexShrink: 0 }}>
+                <rect width={48} height={48} rx={8} fill="#1a0000" />
+                {DRAGON_SVG}
+              </svg>
+              <div>
+                <div style={{ color: "#c03030", fontWeight: "bold", fontSize: 15 }}>קוסם כלוא</div>
+                <div style={{ color: "#666", fontSize: 11 }}>שבוי בידי דרקון הצל</div>
+              </div>
+            </div>
+
             {playerChoice ? (
-              <p>
-                {playerChoice === "help"
-                  ? "תודה רבה על האומץ שלך"
-                  : playerChoice === "flee"
-                  ? "לא! רק אל תעזוב אותי"
-                  : playerChoice === "negotiate"
-                  ? "הדרקון לא רוצה לשוחח"
-                  : "אני מקווה שתחליט מהר"}
-              </p>
+              <div style={{ background: "#1a0808", border: "1px solid #3a1010", borderRadius: 8, padding: 16, textAlign: "right" }}>
+                <p style={{ color: "#c03030", margin: 0, fontSize: 14 }}>{choiceResponses[playerChoice]}</p>
+                <p style={{ color: "#555", margin: "8px 0 0", fontSize: 12 }}>עובר ליער הלחישות...</p>
+              </div>
             ) : (
               <>
-                <p>הצילו! תציל אותי מהדרקון האיום</p>
-                <div className="fixed inset-0 flex items-center justify-center z-50">
-                  <div className="bg-black bg-opacity-90 p-6 rounded-lg max-w-2xl w-full mx-4">
-                    <p className="text-white text-xl text-center mb-6">הצילו! תציל אותי מהדרקון האיום</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-900 p-4 rounded-lg">
-                        <button
-                          onClick={() => { handleChoice("help"); setScore(score + 5); setTimeout(() => setShowDialog(false), 2000); window.location.href = "/game/print"; }}
-                          className="w-full h-full flex flex-col items-center gap-3"
-                        >
-                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                            <img src="/images/helping-hands.jpg" alt="Help wizard" className="w-full h-full object-cover rounded-lg" />
-                          </div>
-                          <span className="text-white text-right w-full">תעזור לקוסם</span>
-                        </button>
-                      </div>
-
-                      <div className="bg-gray-900 p-4 rounded-lg">
-                        <button
-                          onClick={() => { handleChoice("flee"); setScore(score - 5); setTimeout(() => setShowDialog(false), 2000); window.location.href = "/game/print"; }}
-                          className="w-full h-full flex flex-col items-center gap-3"
-                        >
-                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                            <img src="/images/runaway.png" alt="Run from dragon" className="w-full h-full object-cover rounded-lg" />
-                          </div>
-                          <span className="text-white text-right w-full">לברוח מהדרקון</span>
-                        </button>
-                      </div>
-
-                      <div className="bg-gray-900 p-4 rounded-lg">
-                        <button
-                          onClick={() => { handleChoice("negotiate"); setScore(score + 2); setTimeout(() => { setShowDialog(false); window.location.href = "/game/print"; }, 2000); }}
-                          className="w-full h-full flex flex-col items-center gap-3"
-                        >
-                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                            <img src="/images/scales.png" alt="Negotiate with dragon" className="w-full h-full object-cover rounded-lg" />
-                          </div>
-                          <span className="text-white text-right w-full">משא ומתן עם הדרקון</span>
-                        </button>
-                      </div>
-
-                      <div className="bg-gray-900 p-4 rounded-lg">
-                        <button
-                          onClick={() => { handleChoice("wait"); setScore(score - 5); setTimeout(() => setShowDialog(false), 2000); window.location.href = "/game/print"; }}
-                          className="w-full h-full flex flex-col items-center gap-3"
-                        >
-                          <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                            <img src="/images/sandclock.png" alt="Wait and see" className="w-full h-full object-cover rounded-lg" />
-                          </div>
-                          <span className="text-white text-right w-full">אחכה ואראה מה יהיה</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                <p style={{ color: "#e8e8e8", fontSize: 14, lineHeight: 1.7, marginBottom: 20, textAlign: "right" }}>
+                  יוצא לאור! דרקון הצל לכד אותי! הוא שומר אותי כאן בחושך.
+                  רק אומץ לב יכול להציל אותי עכשיו — מה תעשה?
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[
+                    { key: "help",      label: "להציל את הקוסם",   img: "/images/helping-hands.jpg", delta: +5, s: 0,  r: +3, em: +2, h: 0,  a: +2 },
+                    { key: "flee",      label: "לברוח מהדרקון",    img: "/images/runaway.png",       delta: -5, s: 0,  r: -3, em: 0,  h: 0,  a: -2 },
+                    { key: "negotiate", label: "לנסות משא ומתן",   img: "/images/scales.png",        delta: +2, s: +1, r: 0,  em: 0,  h: 0,  a: +1 },
+                    { key: "wait",      label: "לחכות ולראות",     img: "/images/sandclock.png",     delta: -5, s: 0,  r: 0,  em: 0,  h: -3, a: -2 },
+                  ].map((opt) => (
+                    <button
+                      key={opt.key}
+                      onClick={() => makeChoice(opt.key, opt.delta, opt.s, opt.r, opt.em, opt.h, opt.a)}
+                      style={{ background: "#1a0808", border: "1px solid #3a1010", borderRadius: 8, padding: 12, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, transition: "border-color 0.2s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#c03030")}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#3a1010")}
+                    >
+                      <img src={opt.img} alt={opt.label} style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 6 }} />
+                      <span style={{ color: "#e0e0e0", fontSize: 13 }}>{opt.label}</span>
+                    </button>
+                  ))}
                 </div>
               </>
             )}
           </div>
-        )}
-
-        {/* Magician dialog */}
-        {showDialog && !isNearDragon && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4 m-2 rounded">
-            <p>Greetings, young adventurer! Seek ye the ancient wisdom?</p>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 text-white">
-        <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

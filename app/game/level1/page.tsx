@@ -1,591 +1,368 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/router";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useApplicationContext } from "@/app/ApplicationContext";
 
-export default function Level1() {
-  const { score, setScore } = useApplicationContext();
-  const TILE_SIZE = 32;
+const TILE_SIZE = 32;
 
-  // All state declarations grouped together
+const TILE_PATH = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#c8a87a" />
+    <rect x="0" y="0" width="16" height="16" fill="#b8956a" />
+    <rect x="16" y="16" width="16" height="16" fill="#b8956a" />
+  </g>
+);
+const TILE_GRASS = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#3a6b1e" />
+    <circle cx="8" cy="8" r="2" fill="#2d5518" />
+    <circle cx="24" cy="24" r="2" fill="#2d5518" />
+    <circle cx="24" cy="8" r="2" fill="#2d5518" />
+  </g>
+);
+const TILE_TREE = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#1a2e0a" />
+    <rect x="13" y="20" width="6" height="12" fill="#4a2e10" />
+    <path d="M16,3 L29,20 L3,20 Z" fill="#1e4010" />
+    <path d="M16,7 L25,18 L7,18 Z" fill="#265218" />
+  </g>
+);
+const TILE_HOUSE = (
+  <g>
+    <rect x="4" y="12" width="24" height="20" fill="#6b3010" />
+    <polygon points="16,2 30,12 2,12" fill="#4a2008" />
+    <rect x="12" y="20" width="8" height="12" fill="#3a2018" />
+  </g>
+);
+const TILE_WATER = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#1a4a8a" />
+    <path d="M0,8 Q8,4 16,8 Q24,12 32,8" stroke="#2a6ab0" strokeWidth="2" fill="none" />
+    <path d="M0,16 Q8,12 16,16 Q24,20 32,16" stroke="#2a6ab0" strokeWidth="2" fill="none" />
+  </g>
+);
+const TILE_MAGICIAN = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#2a1a40" />
+    <path d="M14,3 L16,0 L18,3 L21,2 L20,5 L23,6 L20,7 L21,10 L18,9 L16,12 L14,9 L11,10 L12,7 L9,6 L12,5 L11,2 Z" fill="#ffd700" />
+    <path d="M12,12 h8 v3 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-3" fill="#6a0dad" />
+    <path d="M12,14 h8 v5 h-8 v-5" fill="#ffd5b0" />
+    <path d="M13,16 h2 v2 h-2 v-2 M17,16 h2 v2 h-2 v-2" fill="#222" />
+    <path d="M10,19 h12 v10 h-12 v-10" fill="#4b0082" />
+    <path d="M22,16 h2 v11 h-2 v-11" fill="#6b3010" />
+    <path d="M21,14 h4 v4 h-4 v-4" fill="#ffd700" />
+  </g>
+);
+
+const HERO_SVG = (
+  <g>
+    <path d="M12,4 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2" fill="#c8a020" />
+    <path d="M12,6 h8 v6 h-8 v-6" fill="#ffd5b0" />
+    <path d="M13,8 h2 v2 h-2 v-2 M17,8 h2 v2 h-2 v-2" fill="#111" />
+    <path d="M10,12 h12 v10 h-12 v-10" fill="#1a5c1a" />
+    <path d="M10,18 h12 v2 h-12 v-2" fill="#6b3010" />
+    <path d="M10,22 h4 v6 h-4 v-6 M18,22 h4 v6 h-4 v-6" fill="#4a2e10" />
+    <path d="M4,12 h6 v8 h-6 v-8" fill="#8b6914" />
+    <path d="M5,13 h4 v6 h-4 v-6" fill="#a07820" />
+  </g>
+);
+
+export default function Level1() {
+  const { score, setScore, resetScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
+
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showDialog, setShowDialog] = useState<boolean>(false);
+  const [showDialog, setShowDialog] = useState(false);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [missionCompleted, setMissionCompleted] = useState<boolean>(false);
-  const [canProceed, setCanProceed] = useState<boolean>(false);
+  const [missionCompleted, setMissionCompleted] = useState(false);
+  const [canProceed, setCanProceed] = useState(false);
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
-  const [volume, setVolume] = useState(1);
 
-  // Audio refs
-  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const magicianAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const map = [
-    [
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2,
-    ],
-    [
-      2, 3, 3, 1, 1, 1, 2, 2, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2,
-      2, 2, 2, 2, 2,
-    ],
-    [
-      2, 3, 3, 0, 0, 1, 2, 2, 4, 4, 4, 4, 2, 2, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2,
-      2, 2, 2, 2, 2,
-    ],
-    [
-      2, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-      2, 2, 2, 2, 2,
-    ],
-    [
-      2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-      1, 2, 2, 2, 2,
-    ],
-    [
-      2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-      1, 1, 2, 2, 2,
-    ],
-    [
-      2, 2, 2, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 0, 0, 0, 0, 0,
-      0, 1, 1, 2, 2,
-    ],
-    [
-      2, 2, 1, 1, 0, 0, 1, 3, 3, 3, 1, 1, 2, 2, 2, 1, 1, 3, 3, 1, 1, 0, 0, 0, 0,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 1, 0, 0, 1, 1, 3, 5, 3, 1, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 1, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, 1, 1, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 0, 0, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 1, 1, 2, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 2, 1, 1, 0, 0, 1, 2, 2, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 2, 2, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 1, 1, 0, 0, 1, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 1,
-      0, 0, 1, 2, 2,
-    ],
-    [
-      2, 2, 1, 0, 0, 1, 1, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0,
-      0, 1, 1, 2, 2,
-    ],
-    [
-      2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 1, 1, 0,
-      0, 1, 2, 2, 2,
-    ],
-    [
-      2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0, 0, 1, 2, 2, 1, 0, 0,
-      1, 2, 2, 2, 2,
-    ],
-    [
-      2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 0, 0, 1, 1, 1, 1, 0, 0,
-      1, 2, 2, 2, 2,
-    ],
-    [
-      2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 1,
-      2, 2, 2, 2, 2,
-    ],
-    [
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      2, 2, 2, 2, 2,
-    ],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+    [2,3,3,1,1,1,2,2,4,4,4,4,2,2,2,2,2,2,1,1,1,1,2,2,2,2,2,2,2,2],
+    [2,3,3,0,0,1,2,2,4,4,4,4,2,2,1,1,1,1,1,0,0,1,1,1,2,2,2,2,2,2],
+    [2,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,1,2,2,2,2,2],
+    [2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,2,2,2],
+    [2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,1,2,2,2],
+    [2,2,2,1,0,0,1,1,1,1,1,1,1,1,1,1,1,3,1,1,0,0,0,0,0,0,1,1,2,2],
+    [2,2,1,1,0,0,1,3,3,3,1,1,2,2,2,1,1,3,3,1,1,0,0,0,0,0,0,1,2,2],
+    [2,1,1,0,0,1,1,3,5,3,1,2,2,2,2,2,1,1,1,1,1,0,0,1,1,0,0,1,2,2],
+    [2,1,0,0,0,1,1,1,1,1,1,2,2,2,2,2,2,1,1,1,0,0,1,1,1,0,0,1,2,2],
+    [2,1,0,0,1,1,2,2,1,1,2,2,2,2,2,2,2,2,1,0,0,1,1,2,1,0,0,1,2,2],
+    [2,1,0,0,1,2,2,2,2,2,2,2,1,1,1,2,2,1,1,0,0,1,2,2,1,0,0,1,2,2],
+    [2,1,0,0,1,2,2,2,2,2,2,1,1,0,1,1,1,1,0,0,1,1,2,2,1,0,0,1,2,2],
+    [2,1,1,0,0,1,2,2,2,2,1,1,0,0,0,0,0,0,0,0,1,2,2,1,1,0,0,1,2,2],
+    [2,2,1,0,0,1,1,2,2,1,1,0,0,0,0,0,0,0,0,1,1,2,2,1,0,0,1,1,2,2],
+    [2,2,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,0,0,1,2,2,1,1,0,0,1,2,2,2],
+    [2,2,2,1,1,0,0,0,0,0,0,0,1,1,2,2,1,0,0,1,2,2,1,0,0,1,2,2,2,2],
+    [2,2,2,2,1,1,0,0,0,0,0,1,1,2,2,2,1,0,0,1,1,1,1,0,0,1,2,2,2,2],
+    [2,2,2,2,2,1,1,1,1,1,1,1,2,2,2,2,1,1,0,0,0,0,0,0,1,2,2,2,2,2],
+    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
   ];
 
-  const tiles = {
-    path: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#e8d4b5" />
-        <rect x="0" y="0" width="16" height="16" fill="#dcc5a7" />
-        <rect x="16" y="16" width="16" height="16" fill="#dcc5a7" />
-      </g>
-    ),
-    grass: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#71aa34" />
-        <circle cx="8" cy="8" r="2" fill="#5d8c2a" />
-        <circle cx="24" cy="24" r="2" fill="#5d8c2a" />
-        <circle cx="24" cy="8" r="2" fill="#5d8c2a" />
-      </g>
-    ),
-    tree: (
-      <g>
-        <rect x="12" y="20" width="8" height="12" fill="#6e4e2c" />
-        <path d="M16,4 L28,20 L4,20 Z" fill="#2d5a1e" />
-        <path d="M16,8 L24,18 L8,18 Z" fill="#3a7325" />
-      </g>
-    ),
-    house: (
-      <g>
-        <rect x="4" y="12" width="24" height="20" fill="#8b4513" />
-        <polygon points="16,2 30,12 2,12" fill="#654321" />
-        <rect x="12" y="20" width="8" height="12" fill="#4a3728" />
-      </g>
-    ),
-    water: (
-      <g>
-        <rect width={TILE_SIZE} height={TILE_SIZE} fill="#4fa4f4" />
-        <path
-          d="M0,4 Q8,0 16,4 Q24,8 32,4"
-          stroke="#65b5ff"
-          strokeWidth="2"
-          fill="none"
-        />
-      </g>
-    ),
-    magician: (
-      <g>
-        <path
-          d="M12,6 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2"
-          fill="#800080"
-        />
-        <path d="M12,8 h8 v6 h-8 v-6" fill="#ffd5b0" />
-        <path d="M13,10 h2 v2 h-2 v-2 M17,10 h2 v2 h-2 v-2" fill="#000" />
-        <path d="M10,14 h12 v10 h-12 v-10" fill="#4b0082" />
-        <path d="M10,20 h12 v2 h-12 v-2" fill="#800080" />
-        <path d="M22,10 h2 v12 h-2 v-12" fill="#8b4513" />
-        <path d="M21,8 h4 v4 h-4 v-4" fill="#ffd700" />
-      </g>
-    ),
-    rock: (
-      <g>
-        <path
-          d="M8,24 L4,16 L8,8 L16,4 L24,8 L28,16 L24,24 L16,28 Z"
-          fill="#808080"
-        />
-        <path d="M16,4 L24,8 L20,12 L12,8 Z" fill="#A0A0A0" />
-        <path d="M24,24 L16,28 L12,20 L20,16 Z" fill="#606060" />
-        <line x1="12" y1="14" x2="16" y2="16" stroke="#707070" strokeWidth="1" />
-        <line x1="20" y1="12" x2="22" y2="16" stroke="#707070" strokeWidth="1" />
-      </g>
-    ),
-  };
-
-  const hero: any = {
-    down: (
-      <g>
-        <path
-          d="M12,6 h8 v2 h2 v2 h-2 v2 h-8 v-2 h-2 v-2 h2 v-2"
-          fill="#ffd700"
-        />
-        <path d="M12,8 h8 v6 h-8 v-6" fill="#ffd5b0" />
-        <path d="M13,10 h2 v2 h-2 v-2 M17,10 h2 v2 h-2 v-2" fill="#000" />
-        <path d="M10,14 h12 v10 h-12 v-10" fill="#228b22" />
-        <path d="M10,20 h12 v2 h-12 v-2" fill="#8b4513" />
-        <path d="M10,24 h4 v4 h-4 v-4 M18,24 h4 v4 h-4 v-4" fill="#654321" />
-        <path d="M20,14 h6 v8 h-6 v-8" fill="#4169e1" />
-        <path d="M21,15 h4 v6 h-4 v-6" fill="#1e90ff" />
-      </g>
-    ),
-  };
-
-  // ─── Initialize background music (ost.mp3) ───────────────────────────────
-  useEffect(() => {
-    const bg = new Audio("/ost.mp3");
-    bg.loop = true;
-    bg.volume = volume;
-    bgMusicRef.current = bg;
-
-    return () => {
-      bg.pause();
-      bg.src = "";
-    };
-  }, []);
-
-  // ─── Initialize magician audio (lost.mp3) ────────────────────────────────
   useEffect(() => {
     const mag = new Audio("/lost.mp3");
     magicianAudioRef.current = mag;
-
-    return () => {
-      mag.pause();
-      mag.src = "";
-    };
+    return () => { mag.pause(); mag.src = ""; };
   }, []);
 
-  // ─── Reset score on mount ─────────────────────────────────────────────────
   useEffect(() => {
-    setScore(0);
+    resetScore();
   }, []);
 
-  // ─── Sync volume to background music ─────────────────────────────────────
-  useEffect(() => {
-    if (bgMusicRef.current) {
-      bgMusicRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
-  // ─── Play / Pause background music ───────────────────────────────────────
-  const togglePlay = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-
-    if (isPlaying) {
-      bg.pause();
-      setIsPlaying(false);
-    } else {
-      bg.play();
-      setIsPlaying(true);
-    }
-  };
-
-  // ─── Mute / Unmute ────────────────────────────────────────────────────────
-  const toggleMute = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-    bg.volume = isMuted ? volume : 0;
-    setIsMuted(!isMuted);
-  };
-
-  // ─── Magician proximity logic ─────────────────────────────────────────────
   const checkMagicianInteraction = (x: number, y: number) => {
-    const isBesideMagician =
+    const near =
       (x > 0 && map[y][x - 1] === 5) ||
       (x < map[0].length - 1 && map[y][x + 1] === 5) ||
       (y > 0 && map[y - 1][x] === 5) ||
       (y < map.length - 1 && map[y + 1][x] === 5);
 
-    if (!missionCompleted) {
-      setShowDialog(isBesideMagician);
-    }
+    if (!missionCompleted) setShowDialog(near);
 
     const bg = bgMusicRef.current;
     const mag = magicianAudioRef.current;
-
-    if (isBesideMagician && mag) {
-      // Pause background music
+    if (near && mag) {
       if (bg) bg.pause();
       setIsPlaying(false);
-
       mag.currentTime = 0;
       mag.play();
-
-      mag.onended = () => {
-        // Resume background music after magician audio ends
-        if (bg) {
-          bg.play();
-          setIsPlaying(true);
-        }
-      };
-    } else if (!isBesideMagician && mag) {
+      mag.onended = () => { if (bg) { bg.play(); setIsPlaying(true); } };
+    } else if (!near && mag) {
       mag.pause();
       mag.currentTime = 0;
     }
   };
 
-  // ─── Keyboard movement ────────────────────────────────────────────────────
+  const makeChoice = (
+    key: string,
+    delta: number,
+    social: number,
+    resilience: number,
+    empathy: number,
+    hope: number,
+    agency: number
+  ) => {
+    setScore((s) => s + delta);
+    addChoice({ level: 1, npc: "מכשף", choice: key, delta, social, resilience, empathy, hope, agency });
+    setSelectedChoice(key);
+    setMissionCompleted(true);
+    setCanProceed(true);
+    setTimeout(() => setShowDialog(false), 2000);
+  };
+
   useEffect(() => {
-    const handleKeyDown = (e: any) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (showDialog) return;
       let newX = position.x;
       let newY = position.y;
       let newFacing = facing;
 
       switch (e.key) {
-        case "ArrowUp":
-          newY = Math.max(0, position.y - 1);
-          newFacing = "up";
-          break;
-        case "ArrowDown":
-          newY = Math.min(map.length - 1, position.y + 1);
-          newFacing = "down";
-          break;
-        case "ArrowLeft":
-          newX = Math.max(0, position.x - 1);
-          newFacing = "left";
-          break;
-        case "ArrowRight":
-          newX = Math.min(map[0].length - 1, position.x + 1);
-          newFacing = "right";
-          break;
+        case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
+        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
+        case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
+        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        default: return;
       }
 
       const nextTile = map[newY][newX];
-      const isWalkable = ![2, 3, 6, 5].includes(nextTile);
+      if ([2, 3, 5].includes(nextTile)) { setFacing(newFacing); return; }
 
-      if (isWalkable) {
-        if (map[newY][newX] === 4) {
-          setShowDrowningMessage(true);
-          setTimeout(() => {
-            setShowDrowningMessage(false);
-            setPosition({ x: 3, y: 3 });
-            setScore(0);
-            setMissionCompleted(false);
-            setCanProceed(false);
-            setSelectedChoice(null);
-            setShowDialog(false);
-          }, 2000);
-        } else {
-          setPosition({ x: newX, y: newY });
-          checkMagicianInteraction(newX, newY);
-        }
+      if (nextTile === 4) {
+        setShowDrowningMessage(true);
+        setTimeout(() => {
+          setShowDrowningMessage(false);
+          setPosition({ x: 3, y: 3 });
+          resetScore();
+          setMissionCompleted(false);
+          setCanProceed(false);
+          setSelectedChoice(null);
+          setShowDialog(false);
+        }, 2000);
+      } else {
+        setPosition({ x: newX, y: newY });
+        checkMagicianInteraction(newX, newY);
       }
       setFacing(newFacing);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [position, facing]);
+  }, [position, facing, showDialog, missionCompleted]);
+
+  const getTile = (cell: number) => {
+    switch (cell) {
+      case 0: return TILE_PATH;
+      case 1: return TILE_GRASS;
+      case 2: return TILE_TREE;
+      case 3: return TILE_HOUSE;
+      case 4: return TILE_WATER;
+      case 5: return TILE_MAGICIAN;
+      default: return TILE_PATH;
+    }
+  };
+
+  const choiceResponses: Record<string, string> = {
+    ignore:     "...נוסע קר לב. טוב. אמצא את דרכי לבד",
+    directions: "תודה רבה, נוסע! הסברים ברורים. ישמור עליך האור",
+    map:        "!מפה! יצירתי וחכם. האור יאיר את דרכך",
+    thief:      "...גנב. הצל כבר לקח גם אותך",
+  };
 
   return (
     <div
-      className="flex flex-col items-center p-4 bg-gray-800"
-      style={{ minHeight: "100vh", justifyContent: "center", width: "100%" }}
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        background: "linear-gradient(180deg, #0a0a1a 0%, #0f1a0f 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        fontFamily: "serif",
+      }}
     >
-      <h1>Level 1</h1>
+      {/* HUD */}
+      <div style={{ position: "fixed", top: 12, left: 12, zIndex: 10, background: "rgba(0,0,0,0.8)", border: "1px solid #d4af37", borderRadius: 8, padding: "8px 16px" }}>
+        <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: 1 }}>ניקוד</div>
+        <div style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>{score}</div>
+      </div>
 
-      {/* Controls */}
-      <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
-        <div className="fixed top-4 left-4 z-10 bg-black bg-opacity-50 px-4 py-2 rounded text-white text-2xl font-bold">
-          Score: {score}
-        </div>
-        <button
-          onClick={togglePlay}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isPlaying ? (
-            <Pause className="text-white w-6 h-6" />
-          ) : (
-            <Play className="text-white w-6 h-6" />
-          )}
+      {/* Audio controls */}
+      <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #555" }}>
+        <button onClick={togglePlay} style={{ background: "#2a1a60", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
         </button>
-        <button
-          onClick={toggleMute}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isMuted ? (
-            <VolumeX className="text-white w-6 h-6" />
-          ) : (
-            <Volume2 className="text-white w-6 h-6" />
-          )}
+        <button onClick={toggleMute} style={{ background: "#2a1a60", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
+        <input
+          type="range" min="0" max="1" step="0.05" value={volume}
+          onChange={(e) => {
+            const v = parseFloat(e.target.value);
+            setVolume(v);
+            if (bgMusicRef.current && !isMuted) bgMusicRef.current.volume = v;
+          }}
+          style={{ width: 64, accentColor: "#d4af37" }}
+        />
+      </div>
+
+      {/* Level header */}
+      <div style={{ textAlign: "center", marginBottom: 12 }}>
+        <div style={{ color: "#888", fontSize: 11, letterSpacing: 3, textTransform: "uppercase" }}>פרק א׳</div>
+        <h1 style={{ color: "#d4af37", fontSize: 22, margin: "4px 0", textShadow: "0 0 20px rgba(212,175,55,0.5)" }}>הדרך האבודה</h1>
+        <p style={{ color: "#666", fontSize: 12, margin: 0 }}>מצא את המכשף האבוד ועזור לו לשוב הביתה</p>
       </div>
 
       {/* Map */}
-      <div
-        className="relative"
-        style={{
-          width: map[0].length * TILE_SIZE,
-          height: map.length * TILE_SIZE,
-        }}
-      >
+      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #2a2a4a", boxShadow: "0 0 40px rgba(0,0,0,0.8)" }}>
         {map.map((row, y) =>
           row.map((cell, x) => (
-            <div
-              key={`${x}-${y}`}
-              className="absolute"
-              style={{
-                left: x * TILE_SIZE,
-                top: y * TILE_SIZE,
-                width: TILE_SIZE,
-                height: TILE_SIZE,
-              }}
-            >
-              <svg width={TILE_SIZE} height={TILE_SIZE}>
-                {cell === 0
-                  ? tiles.path
-                  : cell === 1
-                    ? tiles.grass
-                    : cell === 2
-                      ? tiles.tree
-                      : cell === 3
-                        ? tiles.house
-                        : cell === 4
-                          ? tiles.water
-                          : cell === 5
-                            ? tiles.magician
-                            : tiles.path}
-              </svg>
+            <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
+              <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
             </div>
           ))
         )}
 
         {/* Hero */}
         <div
-          className="absolute transition-all duration-100"
           style={{
+            position: "absolute",
             left: position.x * TILE_SIZE,
             top: position.y * TILE_SIZE,
             width: TILE_SIZE,
             height: TILE_SIZE,
-            transform: `scale(${facing === "left" ? -1 : 1}, 1)`,
+            transition: "left 0.1s, top 0.1s",
+            transform: `scaleX(${facing === "left" ? -1 : 1})`,
           }}
         >
-          <svg width={TILE_SIZE} height={TILE_SIZE}>
-            {hero[facing as any] || hero.down}
-          </svg>
+          <svg width={TILE_SIZE} height={TILE_SIZE}>{HERO_SVG}</svg>
         </div>
-
-        {/* Dialog */}
-        {showDialog && (
-          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4 m-2 rounded">
-            <p className="text-right mb-4">
-              ?היי! איבדתי את הדרך, האם תוכל לעזור לי
-            </p>
-
-            {!selectedChoice ? (
-              <div className="fixed inset-0 flex items-center justify-center z-50">
-                <div className="bg-black bg-opacity-90 p-6 rounded-lg max-w-2xl w-full mx-4">
-                  <p className="text-white text-xl text-center mb-6">
-                    ?היי! איבדתי את הדרך, האם תוכל לעזור לי
-                  </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-900 p-4 rounded-lg">
-                      <button
-                        onClick={() => {
-                          setSelectedChoice("ignore");
-                          setScore(score - 5);
-                          setMissionCompleted(true);
-                          setCanProceed(true);
-                          setTimeout(() => setShowDialog(false), 2000);
-                        }}
-                        className="w-full h-full flex flex-col items-center gap-3"
-                      >
-                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img src="/images/sayNo.png" alt="Ignore wizard" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                        <span className="text-white text-right w-full">להתעלם מהמכשף</span>
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-900 p-4 rounded-lg">
-                      <button
-                        onClick={() => {
-                          setSelectedChoice("directions");
-                          setScore(score + 8);
-                          setMissionCompleted(true);
-                          setCanProceed(true);
-                          setTimeout(() => setShowDialog(false), 2000);
-                        }}
-                        className="w-full h-full flex flex-col items-center gap-3"
-                      >
-                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img src="/images/livui.jpg" alt="Give directions" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                        <span className="text-white text-right w-full">ללוות את המכשף</span>
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-900 p-4 rounded-lg">
-                      <button
-                        onClick={() => {
-                          setSelectedChoice("map");
-                          setScore(score + 8);
-                          setMissionCompleted(true);
-                          setCanProceed(true);
-                          setTimeout(() => setShowDialog(false), 2000);
-                        }}
-                        className="w-full h-full flex flex-col items-center gap-3"
-                      >
-                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img src="/images/map.png" alt="Give map" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                        <span className="text-white text-right w-full">לתת למכשף מפה</span>
-                      </button>
-                    </div>
-
-                    <div className="bg-gray-900 p-4 rounded-lg">
-                      <button
-                        onClick={() => {
-                          setSelectedChoice("thief");
-                          setScore(score - 5);
-                          setMissionCompleted(true);
-                          setCanProceed(true);
-                          setTimeout(() => setShowDialog(false), 2000);
-                        }}
-                        className="w-full h-full flex flex-col items-center gap-3"
-                      >
-                        <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img src="/images/thief.png" alt="Steal items" className="w-full h-full object-cover rounded-lg" />
-                        </div>
-                        <span className="text-white text-right w-full">לגנוב למכשף את החפצים</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Volume slider */}
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={volume}
-                    onChange={(e) => {
-                      const newVolume = parseFloat(e.target.value);
-                      setVolume(newVolume);
-                      if (bgMusicRef.current && !isMuted) {
-                        bgMusicRef.current.volume = newVolume;
-                      }
-                    }}
-                    className="mt-4 w-full"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="text-right">
-                <p className="mb-2">
-                  {selectedChoice === "ignore"
-                    ? "אני !מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
-                    : selectedChoice === "directions"
-                      ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
-                      : selectedChoice === "map"
-                        ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
-                        : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Instructions */}
+      <div style={{ marginTop: 8, color: "#555", fontSize: 11, textAlign: "center" }}>
+        השתמש בחיצים לתנועה • התקרב למכשף לדיאלוג
+      </div>
+
+      {/* Next level button */}
+      {canProceed && (
+        <div style={{ marginTop: 12, width: "100%", display: "flex", justifyContent: "flex-end", paddingRight: 16 }}>
+          <Link
+            href="/game/level2"
+            style={{ padding: "10px 28px", background: "#d4af37", color: "#0a0a1a", borderRadius: 8, fontWeight: "bold", textDecoration: "none", fontSize: 15, border: "none", letterSpacing: 1 }}
+          >
+            המשך למאורת הדרקון ←
+          </Link>
+        </div>
+      )}
 
       {/* Drowning overlay */}
       {showDrowningMessage && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}
-        >
-          <div className="bg-black border-2 border-white text-white p-8 rounded-lg text-center">
-            <h2 className="text-2xl mb-4">!טבעת במים</h2>
-            <p>המשחק מתחיל מחדש</p>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,30,0.9)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+          <div style={{ background: "#0a0a2a", border: "2px solid #1a4a8a", color: "#4a9af0", padding: "32px 48px", borderRadius: 12, textAlign: "center" }}>
+            <h2 style={{ fontSize: 28, margin: "0 0 8px" }}>טבעת במים!</h2>
+            <p style={{ color: "#888", margin: 0 }}>המסע מתחיל מחדש...</p>
           </div>
         </div>
       )}
 
-      <div className="mt-4 text-white">
-        <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
-      </div>
+      {/* Dialog modal */}
+      {showDialog && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
+          <div style={{ background: "#0d0d1e", border: "2px solid #d4af37", borderRadius: 12, padding: 28, maxWidth: 580, width: "90%", direction: "rtl" }}>
+            {/* NPC portrait area */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20, borderBottom: "1px solid #2a2a4a", paddingBottom: 16 }}>
+              <svg width={48} height={48} style={{ flexShrink: 0 }}>
+                <rect width={48} height={48} rx={8} fill="#1a0a30" />
+                {TILE_MAGICIAN}
+              </svg>
+              <div>
+                <div style={{ color: "#d4af37", fontWeight: "bold", fontSize: 15 }}>אלדרין המכשף</div>
+                <div style={{ color: "#aaa", fontSize: 11 }}>מכשף אבוד</div>
+              </div>
+            </div>
 
-      <div style={{ width: "100%", display: "flex", justifyContent: "end", gap: "24px" }}>
-        {canProceed && (
-          <Link
-            href="/game/level2"
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "white",
-              color: "black",
-              borderRadius: "12px",
-            }}
-          >
-            שלב הבא
-          </Link>
-        )}
-      </div>
+            <p style={{ color: "#e8e8e8", fontSize: 14, lineHeight: 1.7, marginBottom: 20, textAlign: "right" }}>
+              נוסע! האור כבה בממלכה. מאז שהצל פשט על הארץ, איבדתי את דרכי.
+              האם תעזור לי למצוא את הדרך חזרה לכפר?
+            </p>
+
+            {!selectedChoice ? (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                {[
+                  { key: "ignore",     label: "להתעלם",            img: "/images/sayNo.png",          delta: -5, s: -3, r: 0, em: -2, h: 0,  a: 0  },
+                  { key: "directions", label: "ללוות אותו לכפר",   img: "/images/livui.jpg",          delta: +8, s: +4, r: 0, em: +4, h: 0,  a: 0  },
+                  { key: "map",        label: "לתת לו מפה",         img: "/images/map.png",            delta: +8, s: 0,  r: 0, em: +4, h: 0,  a: +4 },
+                  { key: "thief",      label: "לגנוב את ספריו",    img: "/images/thief.png",          delta: -5, s: -3, r: 0, em: -2, h: 0,  a: 0  },
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => makeChoice(opt.key, opt.delta, opt.s, opt.r, opt.em, opt.h, opt.a)}
+                    style={{ background: "#1a1a30", border: "1px solid #3a3a5a", borderRadius: 8, padding: 12, cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, transition: "border-color 0.2s" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#d4af37")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#3a3a5a")}
+                  >
+                    <img src={opt.img} alt={opt.label} style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 6 }} />
+                    <span style={{ color: "#e0e0e0", fontSize: 13 }}>{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ background: "#1a1a30", border: "1px solid #3a3a5a", borderRadius: 8, padding: 16, textAlign: "right" }}>
+                <p style={{ color: "#d4af37", margin: 0, fontSize: 14 }}>{choiceResponses[selectedChoice]}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
