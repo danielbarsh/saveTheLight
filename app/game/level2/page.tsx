@@ -21,7 +21,6 @@ export default function Level2() {
   const [isNearDragon, setIsNearDragon] = useState(false);
   const [playerChoice, setPlayerChoice] = useState<string | null>(null);
   const [magicianAudio, setMagicianAudio] = useState<HTMLAudioElement | null>(null);
-  const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
 
   
   const map = [
@@ -297,34 +296,32 @@ export default function Level2() {
     };
   }, []);
 
-  useEffect(() => {
-    const audio = new Audio("/lost.mp3");
-    audio.loop = true;
-    setBackgroundAudio(audio);
-  
-    return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = "";
-      }
-    };
-  }, []);
-
   const togglePlay = () => {
-    if (!backgroundAudio) return;
-    
     if (!isPlaying) {
       setIsPlaying(true);
-      backgroundAudio.play();
+      if (audioContext?.state === "suspended") {
+        audioContext.resume().then(() => {
+          const duration = (playMelody() || 0) * 1000;
+          const interval = setInterval(playMelody, duration);
+          setLoopInterval(interval);
+        });
+      } else {
+        const duration = (playMelody() || 0) * 1000;
+        const interval = setInterval(playMelody, duration);
+        setLoopInterval(interval);
+      }
     } else {
       setIsPlaying(false);
-      backgroundAudio.pause();
+      if (loopInterval) {
+        clearInterval(loopInterval);
+        setLoopInterval(null);
+      }
     }
   };
 
   const toggleMute = () => {
-    if (backgroundAudio) {
-      backgroundAudio.muted = !isMuted;
+    if (gainNode) {
+      gainNode.gain.value = isMuted ? 1 : 0;
       setIsMuted(!isMuted);
     }
   };
