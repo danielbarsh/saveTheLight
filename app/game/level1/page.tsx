@@ -15,19 +15,16 @@ export default function Level1() {
   const [facing, setFacing] = useState("down");
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const [gainNode, setGainNode] = useState<GainNode | null>(null);
-  const [loopInterval, setLoopInterval] = useState<NodeJS.Timeout | null>(null);
   const [showDialog, setShowDialog] = useState<boolean>(false);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [missionCompleted, setMissionCompleted] = useState<boolean>(false);
   const [canProceed, setCanProceed] = useState<boolean>(false);
-  const [magicianAudio, setMagicianAudio] = useState<HTMLAudioElement | null>(null);
-
   const [showDrowningMessage, setShowDrowningMessage] = useState(false);
   const [volume, setVolume] = useState(1);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Audio refs
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+  const magicianAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const map = [
     [
@@ -112,7 +109,6 @@ export default function Level1() {
     ],
   ];
 
-  // All your tile definitions...
   const tiles = {
     path: (
       <g>
@@ -168,35 +164,16 @@ export default function Level1() {
         <path d="M21,8 h4 v4 h-4 v-4" fill="#ffd700" />
       </g>
     ),
-
     rock: (
       <g>
-        {/* Base rock shape */}
         <path
           d="M8,24 L4,16 L8,8 L16,4 L24,8 L28,16 L24,24 L16,28 Z"
           fill="#808080"
         />
-        {/* Highlights */}
         <path d="M16,4 L24,8 L20,12 L12,8 Z" fill="#A0A0A0" />
-        {/* Shadows */}
         <path d="M24,24 L16,28 L12,20 L20,16 Z" fill="#606060" />
-        {/* Surface details */}
-        <line
-          x1="12"
-          y1="14"
-          x2="16"
-          y2="16"
-          stroke="#707070"
-          strokeWidth="1"
-        />
-        <line
-          x1="20"
-          y1="12"
-          x2="22"
-          y2="16"
-          stroke="#707070"
-          strokeWidth="1"
-        />
+        <line x1="12" y1="14" x2="16" y2="16" stroke="#707070" strokeWidth="1" />
+        <line x1="20" y1="12" x2="22" y2="16" stroke="#707070" strokeWidth="1" />
       </g>
     ),
   };
@@ -218,163 +195,102 @@ export default function Level1() {
       </g>
     ),
   };
-  // Initialize audio
+
+  // ─── Initialize background music (ost.mp3) ───────────────────────────────
   useEffect(() => {
-    const context = new (window.AudioContext || window.AudioContext)();
-    const gain = context.createGain();
-    gain.connect(context.destination);
-    setAudioContext(context);
-    setGainNode(gain);
+    const bg = new Audio("/ost.mp3");
+    bg.loop = true;
+    bg.volume = volume;
+    bgMusicRef.current = bg;
 
     return () => {
-      if (loopInterval) clearInterval(loopInterval);
-      if (context.state !== "closed") {
-        context.close();
-      }
+      bg.pause();
+      bg.src = "";
     };
   }, []);
 
+  // ─── Initialize magician audio (lost.mp3) ────────────────────────────────
   useEffect(() => {
-    const audio = new Audio("/lost.mp3"); // Make sure this path is correct
-    setMagicianAudio(audio);
-  
+    const mag = new Audio("/lost.mp3");
+    magicianAudioRef.current = mag;
+
     return () => {
-      if (audio) {
-        audio.pause();
-        audio.src = ""; // Cleanup
-      }
+      mag.pause();
+      mag.src = "";
     };
   }, []);
-  
 
-  // Add this useEffect at the beginning of your component
+  // ─── Reset score on mount ─────────────────────────────────────────────────
   useEffect(() => {
     setScore(0);
-  }, []); // Empty dependency array means this runs once when component mounts
+  }, []);
 
+  // ─── Sync volume to background music ─────────────────────────────────────
   useEffect(() => {
-    if (showDialog && audioRef.current) {
-      audioRef.current.play();
+    if (bgMusicRef.current) {
+      bgMusicRef.current.volume = isMuted ? 0 : volume;
     }
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    };
-  }, [showDialog]);
+  }, [volume, isMuted]);
 
-  const playNote = (frequency: any, startTime: any, duration: any) => {
-    if (!audioContext || !gainNode) return;
-
-    const oscillator = audioContext.createOscillator();
-    const noteGain = audioContext.createGain();
-
-    oscillator.type = "triangle";
-    oscillator.frequency.setValueAtTime(frequency, startTime);
-
-    oscillator.connect(noteGain);
-    noteGain.connect(gainNode);
-
-    noteGain.gain.setValueAtTime(0, startTime);
-    noteGain.gain.linearRampToValueAtTime(0.2, startTime + 0.05);
-    noteGain.gain.setValueAtTime(0.2, startTime + duration - 0.05);
-    noteGain.gain.linearRampToValueAtTime(0, startTime + duration);
-
-    oscillator.start(startTime);
-    oscillator.stop(startTime + duration);
-  };
-
-  const playMelody = () => {
-    if (!audioContext || !gainNode) return;
-
-    const now = audioContext.currentTime;
-    const melody = [
-      { note: 392, duration: 0.5 },
-      { note: 440, duration: 0.5 },
-      { note: 493.88, duration: 0.5 },
-      { note: 523.25, duration: 1 },
-      { note: 493.88, duration: 0.5 },
-      { note: 440, duration: 0.5 },
-      { note: 392, duration: 1 },
-    ];
-
-    let timeOffset = 0;
-    melody.forEach(({ note, duration }) => {
-      playNote(note, now + timeOffset, duration);
-      timeOffset += duration;
-    });
-
-    return timeOffset;
-  };
-
+  // ─── Play / Pause background music ───────────────────────────────────────
   const togglePlay = () => {
-    if (!isPlaying) {
-      setIsPlaying(true);
-      if (audioContext?.state === "suspended") {
-        audioContext.resume().then(() => {
-          const duration = (playMelody() || 0) * 1000;
-          const interval = setInterval(playMelody, duration);
-          setLoopInterval(interval);
-        });
-      } else {
-        const duration = (playMelody() || 0) * 1000;
-        const interval = setInterval(playMelody, duration);
-        setLoopInterval(interval);
-      }
-    } else {
+    const bg = bgMusicRef.current;
+    if (!bg) return;
+
+    if (isPlaying) {
+      bg.pause();
       setIsPlaying(false);
-      if (loopInterval) {
-        clearInterval(loopInterval);
-        setLoopInterval(null);
-      }
+    } else {
+      bg.play();
+      setIsPlaying(true);
     }
   };
 
+  // ─── Mute / Unmute ────────────────────────────────────────────────────────
   const toggleMute = () => {
-    if (gainNode) {
-      gainNode.gain.value = isMuted ? 1 : 0;
-      setIsMuted(!isMuted);
-    }
+    const bg = bgMusicRef.current;
+    if (!bg) return;
+    bg.volume = isMuted ? volume : 0;
+    setIsMuted(!isMuted);
   };
 
+  // ─── Magician proximity logic ─────────────────────────────────────────────
   const checkMagicianInteraction = (x: number, y: number) => {
     const isBesideMagician =
       (x > 0 && map[y][x - 1] === 5) ||
       (x < map[0].length - 1 && map[y][x + 1] === 5) ||
       (y > 0 && map[y - 1][x] === 5) ||
       (y < map.length - 1 && map[y + 1][x] === 5);
-  
+
     if (!missionCompleted) {
       setShowDialog(isBesideMagician);
     }
-    
-    if (isBesideMagician && magicianAudio) {
+
+    const bg = bgMusicRef.current;
+    const mag = magicianAudioRef.current;
+
+    if (isBesideMagician && mag) {
       // Pause background music
-      if (loopInterval) {
-        clearInterval(loopInterval);
-        setLoopInterval(null);
-      }
+      if (bg) bg.pause();
       setIsPlaying(false);
-      
-      magicianAudio.currentTime = 0;
-      magicianAudio.play();
-      
-      // Add event listener to resume background music when magician audio ends
-      magicianAudio.onended = () => {
-        if (!isPlaying) {
+
+      mag.currentTime = 0;
+      mag.play();
+
+      mag.onended = () => {
+        // Resume background music after magician audio ends
+        if (bg) {
+          bg.play();
           setIsPlaying(true);
-          const duration = (playMelody() || 0) * 1000;
-          const interval = setInterval(playMelody, duration);
-          setLoopInterval(interval);
         }
       };
-    } else if (!isBesideMagician && magicianAudio) {
-      magicianAudio.pause();
-      magicianAudio.currentTime = 0;
+    } else if (!isBesideMagician && mag) {
+      mag.pause();
+      mag.currentTime = 0;
     }
   };
 
+  // ─── Keyboard movement ────────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: any) => {
       let newX = position.x;
@@ -414,7 +330,7 @@ export default function Level1() {
             setCanProceed(false);
             setSelectedChoice(null);
             setShowDialog(false);
-          }, 2000); // Show message for 2 seconds
+          }, 2000);
         } else {
           setPosition({ x: newX, y: newY });
           checkMagicianInteraction(newX, newY);
@@ -430,14 +346,11 @@ export default function Level1() {
   return (
     <div
       className="flex flex-col items-center p-4 bg-gray-800"
-      style={{
-        minHeight: "100vh",
-        justifyContent: "center",
-        width: "100%",
-      }}
+      style={{ minHeight: "100vh", justifyContent: "center", width: "100%" }}
     >
       <h1>Level 1</h1>
 
+      {/* Controls */}
       <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
         <div className="fixed top-4 left-4 z-10 bg-black bg-opacity-50 px-4 py-2 rounded text-white text-2xl font-bold">
           Score: {score}
@@ -463,29 +376,8 @@ export default function Level1() {
           )}
         </button>
       </div>
-      <div className="absolute top-4 right-4 flex gap-2 bg-gray-700 p-2 rounded-lg z-10">
-        <button
-          onClick={togglePlay}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isPlaying ? (
-            <Pause className="text-white w-6 h-6" />
-          ) : (
-            <Play className="text-white w-6 h-6" />
-          )}
-        </button>
-        <button
-          onClick={toggleMute}
-          className="p-2 bg-indigo-600 rounded-full hover:bg-indigo-700 transition-colors"
-        >
-          {isMuted ? (
-            <VolumeX className="text-white w-6 h-6" />
-          ) : (
-            <Volume2 className="text-white w-6 h-6" />
-          )}
-        </button>
-      </div>
 
+      {/* Map */}
       <div
         className="relative"
         style={{
@@ -509,21 +401,22 @@ export default function Level1() {
                 {cell === 0
                   ? tiles.path
                   : cell === 1
-                  ? tiles.grass
-                  : cell === 2
-                  ? tiles.tree
-                  : cell === 3
-                  ? tiles.house
-                  : cell === 4
-                  ? tiles.water
-                  : cell === 5
-                  ? tiles.magician
-                  : tiles.path}
+                    ? tiles.grass
+                    : cell === 2
+                      ? tiles.tree
+                      : cell === 3
+                        ? tiles.house
+                        : cell === 4
+                          ? tiles.water
+                          : cell === 5
+                            ? tiles.magician
+                            : tiles.path}
               </svg>
             </div>
           ))
         )}
 
+        {/* Hero */}
         <div
           className="absolute transition-all duration-100"
           style={{
@@ -539,6 +432,7 @@ export default function Level1() {
           </svg>
         </div>
 
+        {/* Dialog */}
         {showDialog && (
           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-75 text-white p-4 m-2 rounded">
             <p className="text-right mb-4">
@@ -552,7 +446,6 @@ export default function Level1() {
                     ?היי! איבדתי את הדרך, האם תוכל לעזור לי
                   </p>
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Ignore Wizard Choice */}
                     <div className="bg-gray-900 p-4 rounded-lg">
                       <button
                         onClick={() => {
@@ -560,26 +453,17 @@ export default function Level1() {
                           setScore(score - 5);
                           setMissionCompleted(true);
                           setCanProceed(true);
-                          setTimeout(() => {
-                            setShowDialog(false);
-                          }, 2000);
+                          setTimeout(() => setShowDialog(false), 2000);
                         }}
                         className="w-full h-full flex flex-col items-center gap-3"
                       >
                         <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img
-                            src="/images/sayNo.png"
-                            alt="Ignore wizard"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
+                          <img src="/images/sayNo.png" alt="Ignore wizard" className="w-full h-full object-cover rounded-lg" />
                         </div>
-                        <span className="text-white text-right w-full">
-                          להתעלם מהמכשף
-                        </span>
+                        <span className="text-white text-right w-full">להתעלם מהמכשף</span>
                       </button>
                     </div>
 
-                    {/* Give Directions Choice */}
                     <div className="bg-gray-900 p-4 rounded-lg">
                       <button
                         onClick={() => {
@@ -587,26 +471,17 @@ export default function Level1() {
                           setScore(score + 8);
                           setMissionCompleted(true);
                           setCanProceed(true);
-                          setTimeout(() => {
-                            setShowDialog(false);
-                          }, 2000);
+                          setTimeout(() => setShowDialog(false), 2000);
                         }}
                         className="w-full h-full flex flex-col items-center gap-3"
                       >
                         <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img
-                            src="/images/livui.jpg"
-                            alt="Give directions"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
+                          <img src="/images/livui.jpg" alt="Give directions" className="w-full h-full object-cover rounded-lg" />
                         </div>
-                        <span className="text-white text-right w-full">
-                          ללוות את המכשף
-                        </span>
+                        <span className="text-white text-right w-full">ללוות את המכשף</span>
                       </button>
                     </div>
 
-                    {/* Give Map Choice */}
                     <div className="bg-gray-900 p-4 rounded-lg">
                       <button
                         onClick={() => {
@@ -614,26 +489,17 @@ export default function Level1() {
                           setScore(score + 8);
                           setMissionCompleted(true);
                           setCanProceed(true);
-                          setTimeout(() => {
-                            setShowDialog(false);
-                          }, 2000);
+                          setTimeout(() => setShowDialog(false), 2000);
                         }}
                         className="w-full h-full flex flex-col items-center gap-3"
                       >
                         <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img
-                            src="/images/map.png"
-                            alt="Give map"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
+                          <img src="/images/map.png" alt="Give map" className="w-full h-full object-cover rounded-lg" />
                         </div>
-                        <span className="text-white text-right w-full">
-                          לתת למכשף מפה
-                        </span>
+                        <span className="text-white text-right w-full">לתת למכשף מפה</span>
                       </button>
                     </div>
 
-                    {/* Steal Items Choice */}
                     <div className="bg-gray-900 p-4 rounded-lg">
                       <button
                         onClick={() => {
@@ -641,25 +507,19 @@ export default function Level1() {
                           setScore(score - 5);
                           setMissionCompleted(true);
                           setCanProceed(true);
-                          setTimeout(() => {
-                            setShowDialog(false);
-                          }, 2000);
+                          setTimeout(() => setShowDialog(false), 2000);
                         }}
                         className="w-full h-full flex flex-col items-center gap-3"
                       >
                         <div className="w-32 h-32 bg-gray-800 rounded-lg flex items-center justify-center">
-                          <img
-                            src="/images/thief.png"
-                            alt="Steal items"
-                            className="w-full h-full object-cover rounded-lg"
-                          />
+                          <img src="/images/thief.png" alt="Steal items" className="w-full h-full object-cover rounded-lg" />
                         </div>
-                        <span className="text-white text-right w-full">
-                          לגנוב למכשף את החפצים
-                        </span>
+                        <span className="text-white text-right w-full">לגנוב למכשף את החפצים</span>
                       </button>
                     </div>
                   </div>
+
+                  {/* Volume slider */}
                   <input
                     type="range"
                     min="0"
@@ -669,10 +529,11 @@ export default function Level1() {
                     onChange={(e) => {
                       const newVolume = parseFloat(e.target.value);
                       setVolume(newVolume);
-                      if (audioRef.current) {
-                        audioRef.current.volume = newVolume;
+                      if (bgMusicRef.current && !isMuted) {
+                        bgMusicRef.current.volume = newVolume;
                       }
                     }}
+                    className="mt-4 w-full"
                   />
                 </div>
               </div>
@@ -682,10 +543,10 @@ export default function Level1() {
                   {selectedChoice === "ignore"
                     ? "אני !מבין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"
                     : selectedChoice === "directions"
-                    ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
-                    : selectedChoice === "map"
-                    ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
-                    : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
+                      ? "ההסברים שלך מאוד ברורים. אני בטוח שאמצא את הדרך."
+                      : selectedChoice === "map"
+                        ? "!המפה שציירת תעזור לי מאוד. תודה על היצירתיות"
+                        : "אני בין. לכל אחד יש את המשימות שלו. בהצלחה בדרך"}
                 </p>
               </div>
             )}
@@ -693,6 +554,7 @@ export default function Level1() {
         )}
       </div>
 
+      {/* Drowning overlay */}
       {showDrowningMessage && (
         <div
           className="fixed inset-0 flex items-center justify-center z-50"
@@ -709,16 +571,8 @@ export default function Level1() {
         <p>השתמש בחיצים כדי לזוז | התקרב לקוסם כדי לדבר איתו</p>
       </div>
 
-      {/* <button onClick={() => setScore(score + 1)}>Increase score</button> */}
-      <div
-        style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "end",
-          gap: "24px",
-        }}
-      >
-        {canProceed && ( // Only show when canProceed is true
+      <div style={{ width: "100%", display: "flex", justifyContent: "end", gap: "24px" }}>
+        {canProceed && (
           <Link
             href="/game/level2"
             style={{
