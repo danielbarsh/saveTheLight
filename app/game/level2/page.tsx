@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Volume2 } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
 import { LEVEL_TWO_MAP } from "@/app/game/data/levels";
+import { useRouter } from "next/navigation";
 
 
 const TILE_SIZE = 32;
@@ -88,7 +89,8 @@ const DRAGON_SVG = (
 );
 
 export default function Level2() {
-  const { score, setScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
+  const { score, setScore, addChoice, bgMusicRef, volume, setVolume } = useApplicationContext();
+  const router = useRouter();
 
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
@@ -123,10 +125,9 @@ export default function Level2() {
     const dragon = dragonAudioRef.current;
     if ((nearMag || nearDragon) && dragon && !playerChoice) {
       if (bg) bg.pause();
-      setIsPlaying(false);
       dragon.currentTime = 0;
       dragon.play();
-      dragon.onended = () => { if (bg) { bg.play(); setIsPlaying(true); } };
+      dragon.onended = () => { if (bg) bg.play(); };
     } else if (!nearMag && !nearDragon && dragon) {
       dragon.pause();
       dragon.currentTime = 0;
@@ -140,7 +141,13 @@ export default function Level2() {
     setScore((s) => s + delta);
     addChoice({ level: 2, npc: "דרקון", choice: key, delta, social, resilience, empathy, hope, agency });
     setPlayerChoice(key);
-    setTimeout(() => { window.location.href = "/game/level3"; }, 1500);
+
+    const dragon = dragonAudioRef.current;
+    const bg = bgMusicRef.current;
+    if (dragon) { dragon.pause(); dragon.currentTime = 0; dragon.onended = null; }
+    if (bg && bg.paused) bg.play().catch(() => {});
+
+    setTimeout(() => { router.push("/game/level3"); }, 1500);
   };
 
   useEffect(() => {
@@ -222,20 +229,11 @@ export default function Level2() {
 
       {/* Audio controls */}
       <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #555" }}>
-        <button onClick={togglePlay} style={{ background: "#3a0a0a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-        <button onClick={toggleMute} style={{ background: "#3a0a0a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
+        <Volume2 size={16} color="#c03030" />
         <input
           type="range" min="0" max="1" step="0.05" value={volume}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            setVolume(v);
-            if (bgMusicRef.current && !isMuted) bgMusicRef.current.volume = v;
-          }}
-          style={{ width: 64, accentColor: "#c03030" }}
+          onChange={(e) => setVolume(parseFloat(e.target.value))}
+          style={{ width: 80, accentColor: "#c03030" }}
         />
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
   useState,
@@ -11,6 +11,17 @@ import React, {
   SetStateAction,
   RefObject,
 } from "react";
+
+// Singleton audio instance that persists across page navigations
+let _bgMusic: HTMLAudioElement | null = null;
+function getBgMusic(): HTMLAudioElement {
+  if (!_bgMusic) {
+    _bgMusic = new Audio("/ost.mp3");
+    _bgMusic.loop = true;
+    _bgMusic.volume = 1;
+  }
+  return _bgMusic;
+}
 
 export type ChoiceRecord = {
   level: number;
@@ -30,16 +41,9 @@ type ApplicationContextProps = {
   resetScore: () => void;
   choices: ChoiceRecord[];
   addChoice: (choice: ChoiceRecord) => void;
-  // Global background music
   bgMusicRef: RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean;
-  setIsPlaying: Dispatch<SetStateAction<boolean>>;
-  isMuted: boolean;
-  setIsMuted: Dispatch<SetStateAction<boolean>>;
   volume: number;
   setVolume: Dispatch<SetStateAction<number>>;
-  togglePlay: () => void;
-  toggleMute: () => void;
 };
 
 const ApplicationContext = createContext<ApplicationContextProps>({
@@ -49,14 +53,8 @@ const ApplicationContext = createContext<ApplicationContextProps>({
   choices: [],
   addChoice: () => {},
   bgMusicRef: { current: null },
-  isPlaying: false,
-  setIsPlaying: () => {},
-  isMuted: false,
-  setIsMuted: () => {},
   volume: 1,
   setVolume: () => {},
-  togglePlay: () => {},
-  toggleMute: () => {},
 });
 
 export const ApplicationContextProvider = ({
@@ -66,34 +64,30 @@ export const ApplicationContextProvider = ({
 }) => {
   const [score, setScore] = useState<number>(0);
   const [choices, setChoices] = useState<ChoiceRecord[]>([]);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
-  // Create the audio element once — it lives for the entire session
   useEffect(() => {
-    const bg = new Audio("/ost.mp3");
-    bg.loop = true;
+    const bg = getBgMusic();
     bg.volume = volume;
     bgMusicRef.current = bg;
-
-    return () => {
-      bg.pause();
-      bg.src = "";
-    };
+    if (bg.paused) {
+      bg.play().catch(() => {
+        const resume = () => { bg.play(); document.removeEventListener("click", resume); };
+        document.addEventListener("click", resume, { once: true });
+      });
+    }
+    // Do not pause/destroy on unmount — singleton keeps playing across navigations
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep volume/mute synced whenever they change
   useEffect(() => {
     if (bgMusicRef.current) {
-      bgMusicRef.current.volume = isMuted ? 0 : volume;
+      bgMusicRef.current.volume = volume;
     }
-  }, [volume, isMuted]);
+  }, [volume]);
 
-  // Restore score/choices from localStorage on mount
   useEffect(() => {
     const savedScore = localStorage.getItem("score");
     if (savedScore) setScore(parseInt(savedScore, 10));
@@ -122,34 +116,13 @@ export const ApplicationContextProvider = ({
     setChoices((prev) => [...prev, choice]);
   };
 
-  const togglePlay = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-    if (isPlaying) {
-      bg.pause();
-      setIsPlaying(false);
-    } else {
-      bg.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const toggleMute = () => {
-    const bg = bgMusicRef.current;
-    if (!bg) return;
-    bg.volume = isMuted ? volume : 0;
-    setIsMuted((prev) => !prev);
-  };
-
   return (
     <ApplicationContext.Provider
       value={{
         score, setScore, resetScore,
         choices, addChoice,
-        bgMusicRef, isPlaying, setIsPlaying,
-        isMuted, setIsMuted,
+        bgMusicRef,
         volume, setVolume,
-        togglePlay, toggleMute,
       }}
     >
       {children}

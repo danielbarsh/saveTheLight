@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Volume2 } from "lucide-react";
+import Link from "next/link";
 import { useApplicationContext } from "@/app/ApplicationContext";
 import { LEVEL_THREE_MAP } from "@/app/game/data/levels"; 
 
@@ -60,7 +61,7 @@ const HERO_SVG = (
 // Spirit NPC is tile 8, placed at map[4][14]
 // Player starts at (2, 10)
 export default function Level3() {
-  const { score, setScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
+  const { score, setScore, addChoice, volume, setVolume } = useApplicationContext();
 
   const [position, setPosition] = useState({ x: 2, y: 10 });
   const [facing, setFacing] = useState("down");
@@ -163,20 +164,11 @@ export default function Level3() {
 
       {/* Audio controls */}
       <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #333" }}>
-        <button onClick={togglePlay} style={{ background: "#1a103a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-        <button onClick={toggleMute} style={{ background: "#1a103a", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
+        <Volume2 size={16} color="#9a80e0" />
         <input
           type="range" min="0" max="1" step="0.05" value={volume}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            setVolume(v);
-            if (bgMusicRef.current && !isMuted) bgMusicRef.current.volume = v;
-          }}
-          style={{ width: 64, accentColor: "#9a80e0" }}
+          onChange={(e) => setVolume(parseFloat(e.target.value))}
+          style={{ width: 80, accentColor: "#9a80e0" }}
         />
       </div>
 
@@ -218,12 +210,12 @@ export default function Level3() {
 
       {canProceed && (
         <div style={{ marginTop: 12, width: "100%", display: "flex", justifyContent: "flex-end", paddingRight: 16 }}>
-          <a
+          <Link
             href="/game/level4"
             style={{ padding: "10px 28px", background: "#9a80e0", color: "#050510", borderRadius: 8, fontWeight: "bold", textDecoration: "none", fontSize: 15, letterSpacing: 1 }}
           >
             המשך לכפר השכוח ←
-          </a>
+          </Link>
         </div>
       )}
 

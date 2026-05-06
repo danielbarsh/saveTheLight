@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Volume2 } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
 import { LEVEL_FIVE_MAP } from "@/app/game/data/levels";
 
@@ -87,7 +87,7 @@ const HERO_SVG = (
 // Oracle NPC (tile 11) at map[3][24]
 // Player starts at (2, 17)
 export default function Level5() {
-  const { score, setScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
+  const { score, setScore, addChoice, volume, setVolume } = useApplicationContext();
 
   const [position, setPosition] = useState({ x: 2, y: 17 });
   const [facing, setFacing] = useState("up");
@@ -193,20 +193,11 @@ export default function Level5() {
 
       {/* Audio controls */}
       <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #333" }}>
-        <button onClick={togglePlay} style={{ background: "#1a1428", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-        <button onClick={toggleMute} style={{ background: "#1a1428", border: "none", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
+        <Volume2 size={16} color="#d4af37" />
         <input
           type="range" min="0" max="1" step="0.05" value={volume}
-          onChange={(e) => {
-            const v = parseFloat(e.target.value);
-            setVolume(v);
-            if (bgMusicRef.current && !isMuted) bgMusicRef.current.volume = v;
-          }}
-          style={{ width: 64, accentColor: "#d4af37" }}
+          onChange={(e) => setVolume(parseFloat(e.target.value))}
+          style={{ width: 80, accentColor: "#d4af37" }}
         />
       </div>
 
