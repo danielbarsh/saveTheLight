@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
+import { LEVEL_FIVE_MAP } from "@/app/game/data/levels";
+
 
 const TILE_SIZE = 32;
 
@@ -94,35 +96,11 @@ export default function Level5() {
   const [playerChoice, setPlayerChoice] = useState<string | null>(null);
   const [entryScore] = useState(score);
 
-  // 0=temple floor, 1=grass, 2=tree, 6=rock, 11=oracle, 13=lava(hazard)
-  const map = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,0,0,0,2,2,2,2],
-    [2,2,2,2,6,6,6,6,6,6,6,6,6,6,6,0,0,0,6,6,6,6,0,0,11,0,2,2,2,2],
-    [2,2,2,6,6,6,6,6,6,6,6,6,0,0,0,0,0,0,0,0,6,6,0,0,0,0,2,2,2,2],
-    [2,2,6,6,6,6,6,6,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,2,2,2,2],
-    [2,2,6,6,6,6,6,6,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,6,6,2,2,2,2],
-    [2,2,6,6,6,6,0,0,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,6,6,2,2,2,2],
-    [2,6,6,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,2,2,2],
-    [2,6,6,6,0,0,0,0,0,0,13,13,13,0,0,0,0,0,0,0,0,0,0,6,6,6,6,2,2,2],
-    [2,6,6,0,0,0,0,0,0,0,13,13,13,0,0,0,0,0,0,0,0,0,6,6,6,6,6,2,2,2],
-    [2,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,6,6,6,2,2],
-    [2,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,6,6,6,6,6,6,2,2],
-    [2,1,0,0,0,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,1,1,1,6,6,6,2,2,2],
-    [2,1,1,0,0,0,0,0,0,0,0,0,0,13,13,0,0,0,0,0,0,1,1,1,1,6,6,2,2,2],
-    [2,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,6,6,2,2,2],
-    [2,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,6,6,6,2,2,2],
-    [2,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,6,6,6,6,2,2,2],
-    [2,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,6,6,6,6,6,2,2,2],
-    [2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6,6,6,6,6,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-  ];
-
 
   const checkProximity = (x: number, y: number) => {
     const near =
-      (x > 0 && map[y][x - 1] === 11) || (x < map[0].length - 1 && map[y][x + 1] === 11) ||
-      (y > 0 && map[y - 1][x] === 11) || (y < map.length - 1 && map[y + 1][x] === 11);
+      (x > 0 && LEVEL_FIVE_MAP[y][x - 1] === 11) || (x < LEVEL_FIVE_MAP[0].length - 1 && LEVEL_FIVE_MAP[y][x + 1] === 11) ||
+      (y > 0 && LEVEL_FIVE_MAP[y - 1][x] === 11) || (y < LEVEL_FIVE_MAP.length - 1 && LEVEL_FIVE_MAP[y + 1][x] === 11);
     setIsNearOracle(near && !playerChoice);
   };
 
@@ -145,14 +123,14 @@ export default function Level5() {
       let newFacing = facing;
 
       switch (e.key) {
-        case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
-        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
-        case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
-        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        case "ArrowUp": newY = Math.max(0, position.y - 1); newFacing = "up"; break;
+        case "ArrowDown": newY = Math.min(LEVEL_FIVE_MAP.length - 1, position.y + 1); newFacing = "down"; break;
+        case "ArrowLeft": newX = Math.max(0, position.x - 1); newFacing = "left"; break;
+        case "ArrowRight": newX = Math.min(LEVEL_FIVE_MAP[0].length - 1, position.x + 1); newFacing = "right"; break;
         default: return;
       }
 
-      const nextTile = map[newY][newX];
+      const nextTile = LEVEL_FIVE_MAP[newY][newX];
       if ([2, 6, 11].includes(nextTile)) { setFacing(newFacing); return; }
 
       if (nextTile === 13) {
@@ -187,10 +165,10 @@ export default function Level5() {
   };
 
   const choiceResponses: Record<string, string> = {
-    accept:    "האורקל מחייך. 'ידעתי שתבחר בכך. האור ממתין לך'",
-    companions:"האורקל מהנהן. 'חוכמה. גיבורים יודעים מתי לבקש עזרה'",
-    refuse:    "האורקל נשאר דומם. '...הצל ימשיך לגדול. זו בחירתך'",
-    easier:    "האורקל נאנח. 'הדרך הקלה לעיתים קרובות היא הקשה ביותר'",
+    accept: "האורקל מחייך. 'ידעתי שתבחר בכך. האור ממתין לך'",
+    companions: "האורקל מהנהן. 'חוכמה. גיבורים יודעים מתי לבקש עזרה'",
+    refuse: "האורקל נשאר דומם. '...הצל ימשיך לגדול. זו בחירתך'",
+    easier: "האורקל נאנח. 'הדרך הקלה לעיתים קרובות היא הקשה ביותר'",
   };
 
   return (
@@ -240,8 +218,8 @@ export default function Level5() {
       </div>
 
       {/* Map */}
-      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #2a2820", boxShadow: "0 0 60px rgba(212,175,55,0.2)" }}>
-        {map.map((row, y) =>
+      <div style={{ position: "relative", width: LEVEL_FIVE_MAP[0].length * TILE_SIZE, height: LEVEL_FIVE_MAP.length * TILE_SIZE, border: "2px solid #2a2820", boxShadow: "0 0 60px rgba(212,175,55,0.2)" }}>
+        {LEVEL_FIVE_MAP.map((row, y) =>
           row.map((cell, x) => (
             <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
               <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
@@ -311,10 +289,10 @@ export default function Level5() {
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[
-                    { key: "accept",     label: "לקבל את המשימה",              emoji: "⚔️",  delta: +7, s: 0,  r: +4, em: 0, h: +3, a: 0  },
-                    { key: "companions", label: "לקבל — אבל לבקש חברים",       emoji: "🤝",  delta: +6, s: +3, r: 0,  em: 0, h: 0,  a: +3 },
-                    { key: "refuse",     label: "לסרב — זה גדול עלי",         emoji: "😔",  delta: -6, s: 0,  r: -3, em: 0, h: -3, a: 0  },
-                    { key: "easier",     label: "לבקש משימה קלה יותר",        emoji: "🙈",  delta: -4, s: 0,  r: -2, em: 0, h: 0,  a: -2 },
+                    { key: "accept", label: "לקבל את המשימה", emoji: "⚔️", delta: +7, s: 0, r: +4, em: 0, h: +3, a: 0 },
+                    { key: "companions", label: "לקבל — אבל לבקש חברים", emoji: "🤝", delta: +6, s: +3, r: 0, em: 0, h: 0, a: +3 },
+                    { key: "refuse", label: "לסרב — זה גדול עלי", emoji: "😔", delta: -6, s: 0, r: -3, em: 0, h: -3, a: 0 },
+                    { key: "easier", label: "לבקש משימה קלה יותר", emoji: "🙈", delta: -4, s: 0, r: -2, em: 0, h: 0, a: -2 },
                   ].map((opt) => (
                     <button
                       key={opt.key}

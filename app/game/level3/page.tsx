@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
+import { LEVEL_THREE_MAP } from "@/app/game/data/levels"; 
+
 
 const TILE_SIZE = 32;
 
@@ -68,36 +70,12 @@ export default function Level3() {
   const [canProceed, setCanProceed] = useState(false);
   const [entryScore] = useState(score);
 
-  // 0=dark floor, 2=tree, 4=water(hazard), 8=spirit NPC
-  // Player: (2,10)  Spirit: (14,4)
-  const map = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,0,0,0,0,0,8,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,0,0,4,4,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,0,0,4,4,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,0,0,0,0,0,0,0,0,0,4,4,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-  ];
 
 
   const checkProximity = (x: number, y: number) => {
     const near =
-      (x > 0 && map[y][x - 1] === 8) || (x < map[0].length - 1 && map[y][x + 1] === 8) ||
-      (y > 0 && map[y - 1][x] === 8) || (y < map.length - 1 && map[y + 1][x] === 8);
+      (x > 0 && LEVEL_THREE_MAP[y][x - 1] === 8) || (x < LEVEL_THREE_MAP[0].length - 1 && LEVEL_THREE_MAP[y][x + 1] === 8) ||
+      (y > 0 && LEVEL_THREE_MAP[y - 1][x] === 8) || (y < LEVEL_THREE_MAP.length - 1 && LEVEL_THREE_MAP[y + 1][x] === 8);
     setIsNearSpirit(near && !playerChoice);
   };
 
@@ -121,13 +99,13 @@ export default function Level3() {
 
       switch (e.key) {
         case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
-        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
+        case "ArrowDown":  newY = Math.min(LEVEL_THREE_MAP.length - 1, position.y + 1); newFacing = "down";  break;
         case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
-        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        case "ArrowRight": newX = Math.min(LEVEL_THREE_MAP[0].length - 1, position.x + 1); newFacing = "right"; break;
         default: return;
       }
 
-      const nextTile = map[newY][newX];
+      const nextTile = LEVEL_THREE_MAP[newY][newX];
       if ([2, 8].includes(nextTile)) { setFacing(newFacing); return; }
 
       if (nextTile === 4) {
@@ -210,8 +188,8 @@ export default function Level3() {
       </div>
 
       {/* Map */}
-      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #1a1a3a", boxShadow: "0 0 60px rgba(80,40,160,0.3)" }}>
-        {map.map((row, y) =>
+      <div style={{ position: "relative", width: LEVEL_THREE_MAP[0].length * TILE_SIZE, height: LEVEL_THREE_MAP.length * TILE_SIZE, border: "2px solid #1a1a3a", boxShadow: "0 0 60px rgba(80,40,160,0.3)" }}>
+        {LEVEL_THREE_MAP.map((row, y) =>
           row.map((cell, x) => (
             <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
               <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>

@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useApplicationContext } from "@/app/ApplicationContext";
+//import { LEVEL_ONE_MAP } from "@/app/game/data/levels";
+import { useRouter } from "next/dist/client/components/navigation";
 
 const TILE_SIZE = 32;
 
@@ -14,6 +16,64 @@ const TILE_PATH = (
     <rect x="16" y="16" width="16" height="16" fill="#b8956a" />
   </g>
 );
+
+const TILE_EXIT = (
+  <g>
+    <rect width={TILE_SIZE} height={TILE_SIZE} fill="#1a1a2e" />
+    <ellipse cx="16" cy="16" rx="10" ry="14" fill="#d4af37" opacity="0.6">
+      <animate attributeName="opacity" values="0.4;0.8;0.4" dur="2s" repeatCount="indefinite" />
+    </ellipse>
+    <path d="M10,16 Q16,5 22,16 T10,16" fill="#fff" opacity="0.8" />
+  </g>
+);
+
+const LEVEL_ONE_MAP = [
+  // אזור 1: כפר ההתחלה (צפון-מערב) - מקום בטוח יחסית
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 3, 3, 0, 0, 0, 1, 1, 1, 3, 3, 3, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+  [2, 1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+  [2, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+  [2, 3, 3, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2],
+  [2, 3, 3, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2],
+
+  // אזור 2: היער המכושף (מרכז ומזרח) - שבילים צרים וצפופים
+  [2, 2, 2, 2, 2, 2, 2, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 1, 2],
+  [2, 1, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1, 2],
+  [2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 0, 1, 2],
+  [2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 0, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 0, 0, 0, 0, 1, 2],
+  [2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 1, 1, 0, 1, 2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 0, 1, 3, 3, 3, 3, 3, 3, 1, 1, 1, 2, 2, 2, 1, 1, 2],
+  [2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2],
+
+  // אזור 3: אגם הייסורים (מרכז המפה) - דורש ניווט מדויק על גשרים
+  [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 1, 1, 4, 4, 0, 4, 4, 4, 4, 4, 4, 1, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2],
+  [2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 1, 4, 4, 0, 4, 4, 4, 4, 4, 4, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+  [2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 1, 0, 1, 1, 4, 4, 0, 4, 4, 4, 4, 4, 4, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2],
+  [2, 1, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2],
+  [2, 1, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 0, 1, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 1, 2],
+  [2, 1, 0, 2, 4, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 0, 1, 1, 1, 1, 1, 1, 2, 4, 4, 4, 4, 4, 0, 4, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0, 1, 2],
+  [2, 1, 0, 2, 4, 4, 0, 4, 4, 4, 0, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 1, 2, 4, 4, 0, 0, 0, 0, 4, 4, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2],
+  [2, 1, 0, 2, 4, 4, 0, 4, 4, 4, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 4, 4, 0, 4, 4, 4, 4, 4, 2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 1, 0, 1, 2],
+  [2, 1, 0, 0, 0, 0, 0, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1, 2, 4, 4, 0, 4, 4, 4, 4, 4, 2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 2, 1, 0, 1, 2],
+
+  // אזור 4: מובלעת המכשף (דרום מזרח) - אזור קסום ומוגן
+  [2, 2, 2, 2, 2, 2, 1, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 2, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 2, 0, 1, 2, 1, 0, 1, 2],
+  [2, 1, 1, 1, 1, 2, 1, 4, 4, 4, 2, 1, 1, 1, 1, 1, 1, 2, 0, 2, 0, 0, 0, 0, 0, 0, 1, 3, 3, 3, 1, 2, 1, 0, 2, 1, 3, 3, 3, 3, 3, 1, 2, 0, 1, 2, 1, 0, 1, 2],
+  [2, 1, 3, 3, 1, 2, 1, 0, 0, 0, 0, 0, 1, 5, 1, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 1, 2, 1, 0, 2, 1, 3, 3, 3, 3, 3, 1, 2, 0, 0, 0, 0, 0, 1, 2],
+  [2, 1, 3, 3, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+
+  // אזור 5: קניון המוות והשער לשלב 2 (דרום)
+  [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+  [2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2],
+  [2, 0, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+];
+
 const TILE_GRASS = (
   <g>
     <rect width={TILE_SIZE} height={TILE_SIZE} fill="#3a6b1e" />
@@ -72,7 +132,7 @@ const HERO_SVG = (
 
 export default function Level1() {
   const { score, setScore, resetScore, addChoice, bgMusicRef, isPlaying, setIsPlaying, isMuted, volume, setVolume, togglePlay, toggleMute } = useApplicationContext();
-
+  const router = useRouter(); // הגדרה
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
   const [showDialog, setShowDialog] = useState(false);
@@ -83,28 +143,7 @@ export default function Level1() {
 
   const magicianAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const map = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,3,3,1,1,1,2,2,4,4,4,4,2,2,2,2,2,2,1,1,1,1,2,2,2,2,2,2,2,2],
-    [2,3,3,0,0,1,2,2,4,4,4,4,2,2,1,1,1,1,1,0,0,1,1,1,2,2,2,2,2,2],
-    [2,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,1,1,2,2,2,2,2],
-    [2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,2,2,2],
-    [2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,1,2,2,2],
-    [2,2,2,1,0,0,1,1,1,1,1,1,1,1,1,1,1,3,1,1,0,0,0,0,0,0,1,1,2,2],
-    [2,2,1,1,0,0,1,3,3,3,1,1,2,2,2,1,1,3,3,1,1,0,0,0,0,0,0,1,2,2],
-    [2,1,1,0,0,1,1,3,5,3,1,2,2,2,2,2,1,1,1,1,1,0,0,1,1,0,0,1,2,2],
-    [2,1,0,0,0,1,1,1,1,1,1,2,2,2,2,2,2,1,1,1,0,0,1,1,1,0,0,1,2,2],
-    [2,1,0,0,1,1,2,2,1,1,2,2,2,2,2,2,2,2,1,0,0,1,1,2,1,0,0,1,2,2],
-    [2,1,0,0,1,2,2,2,2,2,2,2,1,1,1,2,2,1,1,0,0,1,2,2,1,0,0,1,2,2],
-    [2,1,0,0,1,2,2,2,2,2,2,1,1,0,1,1,1,1,0,0,1,1,2,2,1,0,0,1,2,2],
-    [2,1,1,0,0,1,2,2,2,2,1,1,0,0,0,0,0,0,0,0,1,2,2,1,1,0,0,1,2,2],
-    [2,2,1,0,0,1,1,2,2,1,1,0,0,0,0,0,0,0,0,1,1,2,2,1,0,0,1,1,2,2],
-    [2,2,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,0,0,1,2,2,1,1,0,0,1,2,2,2],
-    [2,2,2,1,1,0,0,0,0,0,0,0,1,1,2,2,1,0,0,1,2,2,1,0,0,1,2,2,2,2],
-    [2,2,2,2,1,1,0,0,0,0,0,1,1,2,2,2,1,0,0,1,1,1,1,0,0,1,2,2,2,2],
-    [2,2,2,2,2,1,1,1,1,1,1,1,2,2,2,2,1,1,0,0,0,0,0,0,1,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-  ];
+
 
   useEffect(() => {
     const mag = new Audio("/lost.mp3");
@@ -118,10 +157,10 @@ export default function Level1() {
 
   const checkMagicianInteraction = (x: number, y: number) => {
     const near =
-      (x > 0 && map[y][x - 1] === 5) ||
-      (x < map[0].length - 1 && map[y][x + 1] === 5) ||
-      (y > 0 && map[y - 1][x] === 5) ||
-      (y < map.length - 1 && map[y + 1][x] === 5);
+      (x > 0 && LEVEL_ONE_MAP[y][x - 1] === 5) ||
+      (x < LEVEL_ONE_MAP[0].length - 1 && LEVEL_ONE_MAP[y][x + 1] === 5) ||
+      (y > 0 && LEVEL_ONE_MAP[y - 1][x] === 5) ||
+      (y < LEVEL_ONE_MAP.length - 1 && LEVEL_ONE_MAP[y + 1][x] === 5);
 
     if (!missionCompleted) setShowDialog(near);
 
@@ -164,15 +203,25 @@ export default function Level1() {
       let newFacing = facing;
 
       switch (e.key) {
-        case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
-        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
-        case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
-        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        case "ArrowUp": newY = Math.max(0, position.y - 1); newFacing = "up"; break;
+        case "ArrowDown": newY = Math.min(LEVEL_ONE_MAP.length - 1, position.y + 1); newFacing = "down"; break;
+        case "ArrowLeft": newX = Math.max(0, position.x - 1); newFacing = "left"; break;
+        case "ArrowRight": newX = Math.min(LEVEL_ONE_MAP[0].length - 1, position.x + 1); newFacing = "right"; break;
         default: return;
       }
 
-      const nextTile = map[newY][newX];
+      const nextTile = LEVEL_ONE_MAP[newY][newX];
       if ([2, 3, 5].includes(nextTile)) { setFacing(newFacing); return; }
+
+      if (nextTile === 6) {
+        if (missionCompleted) {
+          router.push("/game/level2"); // הפקודה שמבצעת את המעבר
+        } else {
+          // אם אתה רוצה להציג הודעה שחייבים לסיים את המשימה קודם
+          console.log("חייב לעזור למכשף קודם!");
+        }
+        return; // עוצרים כאן כדי שלא יזוז פיזית לתוך השער
+      }
 
       if (nextTile === 4) {
         setShowDrowningMessage(true);
@@ -204,15 +253,16 @@ export default function Level1() {
       case 3: return TILE_HOUSE;
       case 4: return TILE_WATER;
       case 5: return TILE_MAGICIAN;
+      case 6: return TILE_EXIT;
       default: return TILE_PATH;
     }
   };
 
   const choiceResponses: Record<string, string> = {
-    ignore:     "...נוסע קר לב. טוב. אמצא את דרכי לבד",
+    ignore: "...נוסע קר לב. טוב. אמצא את דרכי לבד",
     directions: "תודה רבה, נוסע! הסברים ברורים. ישמור עליך האור",
-    map:        "!מפה! יצירתי וחכם. האור יאיר את דרכך",
-    thief:      "...גנב. הצל כבר לקח גם אותך",
+    map: "!מפה! יצירתי וחכם. האור יאיר את דרכך",
+    thief: "...גנב. הצל כבר לקח גם אותך",
   };
 
   return (
@@ -262,28 +312,54 @@ export default function Level1() {
       </div>
 
       {/* Map */}
-      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #2a2a4a", boxShadow: "0 0 40px rgba(0,0,0,0.8)" }}>
-        {map.map((row, y) =>
-          row.map((cell, x) => (
-            <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
-              <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
-            </div>
-          ))
-        )}
+      {/* Viewport: חלון הראייה של המשחק */}
+      <div style={{
+        position: "relative",
+        width: "100%",        // תופס את רוחב המסך הזמין
+        maxWidth: "900px",    // מגביל את הרוחב כדי שלא יתפרס מדי
+        height: "600px",      // גובה קבוע לחלון המשחק
+        overflow: "hidden",   // מסתיר את מה שמחוץ למצלמה
+        border: "4px solid #2a2a4a",
+        borderRadius: "12px",
+        background: "#000",
+        boxShadow: "0 0 40px rgba(0,0,0,0.8)"
+      }}>
 
-        {/* Hero */}
-        <div
-          style={{
-            position: "absolute",
-            left: position.x * TILE_SIZE,
-            top: position.y * TILE_SIZE,
-            width: TILE_SIZE,
-            height: TILE_SIZE,
-            transition: "left 0.1s, top 0.1s",
-            transform: `scaleX(${facing === "left" ? -1 : 1})`,
-          }}
-        >
-          <svg width={TILE_SIZE} height={TILE_SIZE}>{HERO_SVG}</svg>
+        {/* Camera Container: המפה שזזה מתחת למצלמה */}
+        <div style={{
+          position: "absolute",
+          width: LEVEL_ONE_MAP[0].length * TILE_SIZE,
+          height: LEVEL_ONE_MAP.length * TILE_SIZE,
+          // חישוב המרכז: מציב את השחקן תמיד באמצע ה-Viewport
+          left: `calc(50% - ${position.x * TILE_SIZE + TILE_SIZE / 2}px)`,
+          top: `calc(50% - ${position.y * TILE_SIZE + TILE_SIZE / 2}px)`,
+          transition: "left 0.2s ease-out, top 0.2s ease-out" // תנועת מצלמה חלקה
+        }}>
+
+          {/* רינדור המפה */}
+          {LEVEL_ONE_MAP.map((row, y) =>
+            row.map((cell, x) => (
+              <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
+                <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
+              </div>
+            ))
+          )}
+
+          {/* Hero: השחקן עכשיו נמצא בתוך המפה שזזה */}
+          <div
+            style={{
+              position: "absolute",
+              left: position.x * TILE_SIZE,
+              top: position.y * TILE_SIZE,
+              width: TILE_SIZE,
+              height: TILE_SIZE,
+              transition: "left 0.1s, top 0.1s",
+              transform: `scaleX(${facing === "left" ? -1 : 1})`,
+              zIndex: 10, // מבטיח שהשחקן תמיד מעל האריחים
+            }}
+          >
+            <svg width={TILE_SIZE} height={TILE_SIZE}>{HERO_SVG}</svg>
+          </div>
         </div>
       </div>
 
@@ -338,10 +414,10 @@ export default function Level1() {
             {!selectedChoice ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {[
-                  { key: "ignore",     label: "להתעלם",            img: "/images/sayNo.png",          delta: -5, s: -3, r: 0, em: -2, h: 0,  a: 0  },
-                  { key: "directions", label: "ללוות אותו לכפר",   img: "/images/livui.jpg",          delta: +8, s: +4, r: 0, em: +4, h: 0,  a: 0  },
-                  { key: "map",        label: "לתת לו מפה",         img: "/images/map.png",            delta: +8, s: 0,  r: 0, em: +4, h: 0,  a: +4 },
-                  { key: "thief",      label: "לגנוב את ספריו",    img: "/images/thief.png",          delta: -5, s: -3, r: 0, em: -2, h: 0,  a: 0  },
+                  { key: "ignore", label: "להתעלם", img: "/images/sayNo.png", delta: -5, s: -3, r: 0, em: -2, h: 0, a: 0 },
+                  { key: "directions", label: "ללוות אותו לכפר", img: "/images/livui.jpg", delta: +8, s: +4, r: 0, em: +4, h: 0, a: 0 },
+                  { key: "map", label: "לתת לו מפה", img: "/images/map.png", delta: +8, s: 0, r: 0, em: +4, h: 0, a: +4 },
+                  { key: "thief", label: "לגנוב את ספריו", img: "/images/thief.png", delta: -5, s: -3, r: 0, em: -2, h: 0, a: 0 },
                 ].map((opt) => (
                   <button
                     key={opt.key}

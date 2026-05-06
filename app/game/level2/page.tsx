@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
+import { LEVEL_TWO_MAP } from "@/app/game/data/levels";
+
 
 const TILE_SIZE = 32;
 
@@ -98,28 +100,7 @@ export default function Level2() {
 
   const dragonAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const map = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,1,1,1,1,2,2,2,1,1,1,1,1,2,2,2,1,1,1,1,1,1,2,2,2,2,2,2,2,2],
-    [2,1,0,0,1,1,2,1,1,0,0,0,1,1,2,1,1,0,0,0,0,1,1,2,2,2,2,2,2,2],
-    [2,1,0,0,0,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,0,1,1,2,2,2,2,2,2],
-    [2,2,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,1,1,2,2,2,2,2],
-    [2,2,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,0,0,0,1,1,2,2,2,2],
-    [2,2,2,1,1,0,0,0,1,1,1,1,1,0,0,0,1,1,6,6,1,1,0,0,0,1,1,2,2,2],
-    [2,2,2,2,1,1,0,0,1,6,6,6,1,0,0,1,1,6,6,6,6,1,1,0,0,0,1,2,2,2],
-    [2,2,2,1,1,0,0,1,1,6,6,6,1,1,0,1,6,6,6,6,6,6,1,1,0,0,1,2,2,2],
-    [2,2,1,1,0,0,1,1,6,6,6,6,6,1,1,1,6,6,4,4,6,6,6,1,0,0,5,2,2,2],
-    [2,1,1,0,0,1,1,6,6,6,4,4,6,6,1,1,1,4,4,4,4,6,6,1,0,7,1,2,2,2],
-    [2,1,0,0,1,1,6,6,6,4,4,4,4,6,6,1,1,1,4,4,6,6,1,1,0,0,1,2,2,2],
-    [2,1,0,0,1,6,6,6,4,4,4,4,4,4,6,6,1,1,1,1,1,1,1,0,0,1,1,2,2,2],
-    [2,1,0,0,1,1,6,4,4,4,6,6,4,4,4,6,6,1,0,0,0,0,0,0,1,1,2,2,2,2],
-    [2,1,1,0,0,1,1,1,4,6,6,6,6,4,4,4,6,1,0,0,0,0,0,1,1,2,2,2,2,2],
-    [2,2,1,1,0,0,0,1,1,1,1,1,1,1,4,4,6,1,1,0,0,0,1,1,2,2,2,2,2,2],
-    [2,2,2,1,1,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,1,2,2,2,2,2,2,2],
-    [2,2,2,2,1,1,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-  ];
+
 
   useEffect(() => {
     const d = new Audio("/meetdragon.mp3");
@@ -129,11 +110,11 @@ export default function Level2() {
 
   const checkProximity = (x: number, y: number) => {
     const nearMag =
-      (x > 0 && map[y][x - 1] === 5) || (x < map[0].length - 1 && map[y][x + 1] === 5) ||
-      (y > 0 && map[y - 1][x] === 5) || (y < map.length - 1 && map[y + 1][x] === 5);
+      (x > 0 && LEVEL_TWO_MAP[y][x - 1] === 5) || (x < LEVEL_TWO_MAP[0].length - 1 && LEVEL_TWO_MAP[y][x + 1] === 5) ||
+      (y > 0 && LEVEL_TWO_MAP[y - 1][x] === 5) || (y < LEVEL_TWO_MAP.length - 1 && LEVEL_TWO_MAP[y + 1][x] === 5);
     const nearDragon =
-      (x > 0 && map[y][x - 1] === 7) || (x < map[0].length - 1 && map[y][x + 1] === 7) ||
-      (y > 0 && map[y - 1][x] === 7) || (y < map.length - 1 && map[y + 1][x] === 7);
+      (x > 0 && LEVEL_TWO_MAP[y][x - 1] === 7) || (x < LEVEL_TWO_MAP[0].length - 1 && LEVEL_TWO_MAP[y][x + 1] === 7) ||
+      (y > 0 && LEVEL_TWO_MAP[y - 1][x] === 7) || (y < LEVEL_TWO_MAP.length - 1 && LEVEL_TWO_MAP[y + 1][x] === 7);
 
     setIsNearMagician(nearMag);
     setIsNearDragon(nearDragon);
@@ -170,14 +151,14 @@ export default function Level2() {
       let newFacing = facing;
 
       switch (e.key) {
-        case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
-        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
-        case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
-        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        case "ArrowUp": newY = Math.max(0, position.y - 1); newFacing = "up"; break;
+        case "ArrowDown": newY = Math.min(LEVEL_TWO_MAP.length - 1, position.y + 1); newFacing = "down"; break;
+        case "ArrowLeft": newX = Math.max(0, position.x - 1); newFacing = "left"; break;
+        case "ArrowRight": newX = Math.min(LEVEL_TWO_MAP[0].length - 1, position.x + 1); newFacing = "right"; break;
         default: return;
       }
 
-      const nextTile = map[newY][newX];
+      const nextTile = LEVEL_TWO_MAP[newY][newX];
       if ([2, 3, 5, 6, 7].includes(nextTile)) { setFacing(newFacing); return; }
 
       if (nextTile === 4) {
@@ -213,10 +194,10 @@ export default function Level2() {
   };
 
   const choiceResponses: Record<string, string> = {
-    help:      "!אומץ לב אמיתי! הדרקון נסוג. הקוסם חופשי",
-    flee:      "...רצת. הקוסם נשאר לבד. הצל מתחזק",
+    help: "!אומץ לב אמיתי! הדרקון נסוג. הקוסם חופשי",
+    flee: "...רצת. הקוסם נשאר לבד. הצל מתחזק",
     negotiate: "ניסית לדבר... הדרקון לא הקשיב. אבל האומץ שלך נרשם",
-    wait:      "...המתנת. הזמן עבר. הקוסם עדיין שם",
+    wait: "...המתנת. הזמן עבר. הקוסם עדיין שם",
   };
 
   return (
@@ -266,8 +247,8 @@ export default function Level2() {
       </div>
 
       {/* Map */}
-      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #3a0808", boxShadow: "0 0 40px rgba(100,0,0,0.5)" }}>
-        {map.map((row, y) =>
+      <div style={{ position: "relative", width: LEVEL_TWO_MAP[0].length * TILE_SIZE, height: LEVEL_TWO_MAP.length * TILE_SIZE, border: "2px solid #3a0808", boxShadow: "0 0 40px rgba(100,0,0,0.5)" }}>
+        {LEVEL_TWO_MAP.map((row, y) =>
           row.map((cell, x) => (
             <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
               {cell === 7 ? (
@@ -344,10 +325,10 @@ export default function Level2() {
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[
-                    { key: "help",      label: "להציל את הקוסם",   img: "/images/helping-hands.jpg", delta: +5, s: 0,  r: +3, em: +2, h: 0,  a: +2 },
-                    { key: "flee",      label: "לברוח מהדרקון",    img: "/images/runaway.png",       delta: -5, s: 0,  r: -3, em: 0,  h: 0,  a: -2 },
-                    { key: "negotiate", label: "לנסות משא ומתן",   img: "/images/scales.png",        delta: +2, s: +1, r: 0,  em: 0,  h: 0,  a: +1 },
-                    { key: "wait",      label: "לחכות ולראות",     img: "/images/sandclock.png",     delta: -5, s: 0,  r: 0,  em: 0,  h: -3, a: -2 },
+                    { key: "help", label: "להציל את הקוסם", img: "/images/helping-hands.jpg", delta: +5, s: 0, r: +3, em: +2, h: 0, a: +2 },
+                    { key: "flee", label: "לברוח מהדרקון", img: "/images/runaway.png", delta: -5, s: 0, r: -3, em: 0, h: 0, a: -2 },
+                    { key: "negotiate", label: "לנסות משא ומתן", img: "/images/scales.png", delta: +2, s: +1, r: 0, em: 0, h: 0, a: +1 },
+                    { key: "wait", label: "לחכות ולראות", img: "/images/sandclock.png", delta: -5, s: 0, r: 0, em: 0, h: -3, a: -2 },
                   ].map((opt) => (
                     <button
                       key={opt.key}

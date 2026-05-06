@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { useApplicationContext } from "@/app/ApplicationContext";
+import { LEVEL_FOUR_MAP } from "@/app/game/data/levels"; 
+
 
 const TILE_SIZE = 32;
 
@@ -108,38 +110,15 @@ export default function Level4() {
   const [canProceed, setCanProceed] = useState(false);
   const [entryScore] = useState(score);
 
-  // 0=path, 1=grass, 2=tree, 3=ruin, 4=water, 9=child, 10=elder
-  const map = [
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-    [2,1,1,1,1,1,2,2,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
-    [2,1,3,3,1,1,2,1,1,3,3,3,1,1,2,1,1,3,3,3,3,1,1,1,2,2,2,2,2,2],
-    [2,1,3,3,1,1,2,1,1,3,3,3,1,1,2,1,1,3,3,3,3,1,1,1,2,2,2,2,2,2],
-    [2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
-    [2,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
-    [2,1,0,0,0,0,0,9,0,0,1,1,2,2,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2],
-    [2,1,1,0,0,0,0,0,0,0,0,1,1,2,2,1,1,1,1,1,0,0,0,0,1,2,2,2,2,2],
-    [2,2,1,1,0,0,0,0,0,0,0,0,1,1,2,1,1,1,0,0,0,0,0,0,0,1,2,2,2,2],
-    [2,2,2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2,2],
-    [2,2,2,1,1,0,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2,2],
-    [2,2,2,1,0,0,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,10,0,0,1,2,2,2,2],
-    [2,2,1,1,0,0,0,0,0,0,0,0,3,3,3,0,0,0,0,0,3,3,3,0,0,1,1,2,2,2],
-    [2,1,1,0,0,0,0,0,0,0,0,3,3,3,3,3,0,0,0,3,3,3,3,0,0,0,1,2,2,2],
-    [2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,2,2,2],
-    [2,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,2,2,2],
-    [2,2,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,2,2,2,2],
-    [2,2,2,2,2,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2],
-    [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
-  ];
-
+ 
 
   const checkProximity = (x: number, y: number) => {
     const nearChild =
-      (x > 0 && map[y][x - 1] === 9) || (x < map[0].length - 1 && map[y][x + 1] === 9) ||
-      (y > 0 && map[y - 1][x] === 9) || (y < map.length - 1 && map[y + 1][x] === 9);
+      (x > 0 && LEVEL_FOUR_MAP[y][x - 1] === 9) || (x < LEVEL_FOUR_MAP[0].length - 1 && LEVEL_FOUR_MAP[y][x + 1] === 9) ||
+      (y > 0 && LEVEL_FOUR_MAP[y - 1][x] === 9) || (y < LEVEL_FOUR_MAP.length - 1 && LEVEL_FOUR_MAP[y + 1][x] === 9);
     const nearElder =
-      (x > 0 && map[y][x - 1] === 10) || (x < map[0].length - 1 && map[y][x + 1] === 10) ||
-      (y > 0 && map[y - 1][x] === 10) || (y < map.length - 1 && map[y + 1][x] === 10);
+      (x > 0 && LEVEL_FOUR_MAP[y][x - 1] === 10) || (x < LEVEL_FOUR_MAP[0].length - 1 && LEVEL_FOUR_MAP[y][x + 1] === 10) ||
+      (y > 0 && LEVEL_FOUR_MAP[y - 1][x] === 10) || (y < LEVEL_FOUR_MAP.length - 1 && LEVEL_FOUR_MAP[y + 1][x] === 10);
 
     setIsNearChild(nearChild && !childChoice);
     setIsNearElder(nearElder && !elderChoice);
@@ -180,13 +159,13 @@ export default function Level4() {
 
       switch (e.key) {
         case "ArrowUp":    newY = Math.max(0, position.y - 1); newFacing = "up";    break;
-        case "ArrowDown":  newY = Math.min(map.length - 1, position.y + 1); newFacing = "down";  break;
+        case "ArrowDown":  newY = Math.min(LEVEL_FOUR_MAP.length - 1, position.y + 1); newFacing = "down";  break;
         case "ArrowLeft":  newX = Math.max(0, position.x - 1); newFacing = "left";  break;
-        case "ArrowRight": newX = Math.min(map[0].length - 1, position.x + 1); newFacing = "right"; break;
+        case "ArrowRight": newX = Math.min(LEVEL_FOUR_MAP[0].length - 1, position.x + 1); newFacing = "right"; break;
         default: return;
       }
 
-      const nextTile = map[newY][newX];
+      const nextTile = LEVEL_FOUR_MAP[newY][newX];
       if ([2, 3, 9, 10].includes(nextTile)) { setFacing(newFacing); return; }
 
       if (nextTile === 4) {
@@ -292,8 +271,8 @@ export default function Level4() {
       </div>
 
       {/* Map */}
-      <div style={{ position: "relative", width: map[0].length * TILE_SIZE, height: map.length * TILE_SIZE, border: "2px solid #2a2010", boxShadow: "0 0 40px rgba(100,70,20,0.3)" }}>
-        {map.map((row, y) =>
+      <div style={{ position: "relative", width: LEVEL_FOUR_MAP[0].length * TILE_SIZE, height: LEVEL_FOUR_MAP.length * TILE_SIZE, border: "2px solid #2a2010", boxShadow: "0 0 40px rgba(100,70,20,0.3)" }}>
+        {LEVEL_FOUR_MAP.map((row, y) =>
           row.map((cell, x) => (
             <div key={`${x}-${y}`} style={{ position: "absolute", left: x * TILE_SIZE, top: y * TILE_SIZE, width: TILE_SIZE, height: TILE_SIZE }}>
               <svg width={TILE_SIZE} height={TILE_SIZE}>{getTile(cell)}</svg>
