@@ -131,7 +131,7 @@ const HERO_SVG = (
 );
 
 export default function Level1() {
-  const { score, setScore, resetScore, addChoice, bgMusicRef, volume, setVolume } = useApplicationContext();
+  const { setScore, resetScore, addChoice, bgMusicRef, volume, setVolume } = useApplicationContext();
   const router = useRouter(); // הגדרה
   const [position, setPosition] = useState({ x: 3, y: 3 });
   const [facing, setFacing] = useState("down");
@@ -278,11 +278,6 @@ export default function Level1() {
         fontFamily: "serif",
       }}
     >
-      {/* HUD */}
-      <div style={{ position: "fixed", top: 12, left: 12, zIndex: 10, background: "rgba(0,0,0,0.8)", border: "1px solid #d4af37", borderRadius: 8, padding: "8px 16px" }}>
-        <div style={{ color: "#d4af37", fontSize: 13, letterSpacing: 1 }}>ניקוד</div>
-        <div style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>{score}</div>
-      </div>
 
       {/* Audio controls */}
       <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #555" }}>

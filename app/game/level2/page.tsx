@@ -221,11 +221,6 @@ export default function Level2() {
         fontFamily: "serif",
       }}
     >
-      {/* HUD */}
-      <div style={{ position: "fixed", top: 12, left: 12, zIndex: 10, background: "rgba(0,0,0,0.8)", border: "1px solid #8a1010", borderRadius: 8, padding: "8px 16px" }}>
-        <div style={{ color: "#c03030", fontSize: 13, letterSpacing: 1 }}>ניקוד</div>
-        <div style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>{score}</div>
-      </div>
 
       {/* Audio controls */}
       <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.7)", padding: 8, borderRadius: 8, border: "1px solid #555" }}>

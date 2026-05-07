@@ -11,6 +11,7 @@ import {
   SetStateAction,
   RefObject,
 } from "react";
+import { usePathname } from "next/navigation";
 
 // Singleton audio instance that persists across page navigations
 let _bgMusic: HTMLAudioElement | null = null;
@@ -67,20 +68,28 @@ export const ApplicationContextProvider = ({
   const [volume, setVolume] = useState(1);
 
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const bg = getBgMusic();
     bg.volume = volume;
     bgMusicRef.current = bg;
-    if (bg.paused) {
-      bg.play().catch(() => {
-        const resume = () => { bg.play(); document.removeEventListener("click", resume); };
-        document.addEventListener("click", resume, { once: true });
-      });
-    }
-    // Do not pause/destroy on unmount — singleton keeps playing across navigations
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const bg = getBgMusic();
+    if (pathname.startsWith("/game/level")) {
+      if (bg.paused) {
+        bg.play().catch(() => {
+          const resume = () => { bg.play(); document.removeEventListener("click", resume); };
+          document.addEventListener("click", resume, { once: true });
+        });
+      }
+    } else if (!pathname.startsWith("/game")) {
+      bg.pause();
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (bgMusicRef.current) {

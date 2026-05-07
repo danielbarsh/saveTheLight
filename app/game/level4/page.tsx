@@ -229,11 +229,6 @@ export default function Level4() {
         fontFamily: "serif",
       }}
     >
-      {/* HUD */}
-      <div style={{ position: "fixed", top: 12, left: 12, zIndex: 10, background: "rgba(0,0,0,0.8)", border: "1px solid #6a5020", borderRadius: 8, padding: "8px 16px" }}>
-        <div style={{ color: "#c89040", fontSize: 13, letterSpacing: 1 }}>ניקוד</div>
-        <div style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>{score}</div>
-      </div>
 
       {/* Progress indicators */}
       <div style={{ position: "fixed", top: 12, left: 160, zIndex: 10, display: "flex", gap: 8 }}>
